@@ -1,0 +1,9 @@
+{
+  "name": "hms-backend",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js"
+  }
+}
