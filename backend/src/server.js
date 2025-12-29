@@ -1,12 +1,19 @@
-import express from 'express';
+import app from './app.js'
+import sequelize from './db/index.js'
 
-const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 3000
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'HMS Backend' });
-});
+const start = async () => {
+  try {
+    await sequelize.authenticate()
+    console.log('DB connection OK')
+    await sequelize.sync()
+    console.log('DB synced')
+    app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`))
+  } catch (err) {
+    console.error('Failed to start server', err)
+    process.exit(1)
+  }
+}
 
-app.listen(3000, () => {
-  console.log('Backend running on http://localhost:3000');
-});
+start()
