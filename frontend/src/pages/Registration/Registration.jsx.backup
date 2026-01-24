@@ -1,0 +1,145 @@
+import { useState } from 'react';
+import axios from '../../api/axios';
+import '../../styles/form.css';
+
+export default function Registration() {
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    gender: 'Male',
+    dob: '',
+    phone: '',
+    village: '',
+    address: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post('/patients', formData);
+      setMessage(`✓ Patient registered: UHID ${response.data.patient.uhid}`);
+      setFormData({
+        first_name: '',
+        last_name: '',
+        gender: 'Male',
+        dob: '',
+        phone: '',
+        village: '',
+        address: '',
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <header className="app-header">Seemant Eye Hospital — HMS</header>
+      <div className="form-container" style={{ marginTop: 50 }}>
+        <div className="form-card">
+          <h1>Patient Registration</h1>
+
+          {message && <div className="success-message">{message}</div>}
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-row">
+              <div className="form-group">
+                <label>First Name *</label>
+                <input
+                  type="text"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Last Name *</label>
+                <input
+                  type="text"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Gender *</label>
+                <select name="gender" value={formData.gender} onChange={handleChange}>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Date of Birth *</label>
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Phone *</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Village *</label>
+                <input
+                  type="text"
+                  name="village"
+                  value={formData.village}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Address</label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                rows="3"
+              />
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? 'Registering...' : 'Register Patient'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+}

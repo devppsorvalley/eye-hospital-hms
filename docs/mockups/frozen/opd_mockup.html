@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Patient OPD — Seemant Eye Hospital</title>
+<style>
+  :root{
+    --brand:#0f6b63;
+    --muted:#6b6f73;
+    --bg:#f4f7f6;
+    --card:#ffffff;
+    --danger:#d9534f;
+    --border:#e1e7e6;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  body{margin:0;background:var(--bg);color:#222}
+  header{background:var(--brand); color:#fff; padding:10px 16px; display:flex;align-items:center;justify-content:center}
+  header h1{font-size:16px;margin:0}
+  .container{display:flex;gap:12px;padding:12px}
+  .panel{background:var(--card);box-shadow:0 1px 6px rgba(0,0,0,0.06);border-radius:6px;padding:12px}
+  .left{flex:1;min-width:720px}
+  .right{width:320px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+  .col-3{display:flex;gap:10px}
+  input[type="text"], input[type="number"], input[type="date"], select, textarea{
+    width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:14px;background:#fff;
+    box-sizing:border-box;
+  }
+  .small{width:84px}
+  .tiny{font-size:12px;color:var(--muted)}
+  .btn{background:var(--brand);color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer}
+  .btn.secondary{background:#f0f0f0;color:#333;border:1px solid #ddd}
+  .btn.danger{background:var(--danger)}
+  .muted{color:var(--muted)}
+  .photo-box{width:150px;height:150px;border:1px dashed #cfd8dc;border-radius:6px;display:flex;align-items:center;justify-content:center;background:#fafafa;overflow:hidden}
+  .field-required {color:var(--danger);margin-left:6px;font-weight:600}
+  .grid {display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;}
+  .grid-2 {display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+  .actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .results-popup{background:#fff;border:1px solid #e6eceb;box-shadow:0 6px 18px rgba(0,0,0,0.06);padding:8px;border-radius:6px;max-height:260px;overflow:auto;position:relative;z-index:40}
+  .result-item{padding:8px;border-bottom:1px solid #f2f5f4;cursor:pointer}
+  .result-item:last-child{border-bottom:none}
+  .queue-doctor{font-weight:700;color:#0f6b63;margin-top:12px;margin-bottom:6px}
+  .queue-entry{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #f4f7f4}
+  .queue-left{max-width:180px}
+  .queue-meta{font-size:12px;color:var(--muted);margin-top:4px}
+  .queue-actions{display:flex;gap:6px;align-items:center}
+  .status-badge{font-size:12px;padding:4px 8px;border-radius:12px;font-weight:700}
+  .st-wait{background:#fff3cd;color:#856404;border:1px solid #f1e1a8}
+  .st-progress{background:#cce5ff;color:#004085;border:1px solid #a9d1ff}
+  .st-complete{background:#d4edda;color:#155724;border:1px solid #bcdfbe}
+  .tiny-muted{font-size:12px;color:var(--muted)}
+  .recent-list{max-height:320px;overflow:auto;border-top:1px solid #f4f7f6;padding-top:8px}
+  .recent-item{padding:8px;border-bottom:1px solid #f4f7f4;cursor:pointer}
+  .recent-item:hover{background:#fafafa}
+  .small-btn{padding:6px 10px;border-radius:4px;border:1px solid #ccc;background:#fff;color:#333;cursor:pointer}
+  .small-btn.ghost{background:#f7f7f7}
+  @media(max-width:1100px){ .container{flex-direction:column} .right{width:100%} .left{min-width:unset} }
+</style>
+</head>
+<body>
+<header><h1>Patient OPD — Seemant Eye Hospital</h1></header>
+
+<div class="container">
+  <!-- LEFT PANEL -->
+  <div class="panel left" id="leftPanel">
+    <div style="display:flex;justify-content:center;margin-bottom:6px">
+      <h2 style="margin:8px 0;color:#0f6b63">OPD — Add to Queue</h2>
+    </div>
+
+    <!-- top row: Service + Today Date + Serial -->
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <label>Service Name</label>
+        <select id="serviceName">
+          <option>OPD</option>
+        </select>
+      </div>
+
+      <div style="width:200px">
+        <label>Today Date</label>
+        <input id="today_date" type="text" disabled />
+      </div>
+
+      <div style="width:110px">
+        <label>Serial (next)</label>
+        <input id="serial_next" type="text" disabled />
+      </div>
+    </div>
+
+    <hr/>
+
+    <h3 style="margin:6px 0">Patient (load from search)</h3>
+
+    <!-- Patient fields -->
+    <div class="grid" style="align-items:end">
+      <div>
+        <label>UHID</label>
+        <input id="uhid" type="text" disabled />
+      </div>
+      <div>
+        <label>Full name</label>
+        <input id="full_name" type="text" disabled />
+      </div>
+      <div>
+        <label>Gender</label>
+        <input id="gender" type="text" disabled />
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:8px">
+      <div>
+        <label>Relation (S/o / D/o / W/o)</label>
+        <input id="relation_text" type="text" placeholder="" disabled />
+      </div>
+      <div>
+        <label>Age</label>
+        <input id="age" type="text" placeholder="e.g. 32 yrs 3 mos" disabled />
+      </div>
+      <div>
+        <label>Phone</label>
+        <input id="phone" type="text" placeholder="+91-xxxxxxxxxx" disabled />
+      </div>
+    </div>
+
+    <div style="margin-top:8px">
+      <label>Address</label>
+      <textarea id="address" rows="2" disabled></textarea>
+    </div>
+
+    <div class="row" style="margin-top:10px;align-items:center">
+      <div style="flex:1">
+        <label>Doctor</label>
+        <select id="doctor" >
+          <option>Dr Rohan</option>
+          <option>Dr Sharma</option>
+          <option>Dr Mehra</option>
+        </select>
+      </div>
+
+      <div style="width:160px">
+        <label>Amount (₹)</label>
+        <input id="amount" type="text" placeholder="" />
+      </div>
+
+      <div style="width:180px">
+        <label>Visit Type</label>
+        <select id="visitType">
+          <option>New</option>
+          <option>Follow-up</option>
+          <option>Express</option>
+          <option>ECHS</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:8px">
+      <label>Operator Notes (optional)</label>
+      <input id="op_notes" type="text" placeholder="Short note or code" />
+    </div>
+
+    <!-- actions -->
+    <div class="actions" style="margin-top:18px">
+      <button class="btn" id="addQueueBtn">Add to Today's OPD Queue</button>
+      <button class="btn secondary" id="removeFromQueueBtn">Remove from Queue</button>
+      <button class="btn secondary" id="printTokenBtn">Print Token</button>
+      <button class="btn secondary" id="printReceiptBtn">Print Receipt</button>
+      <button class="btn secondary" id="exportQueueBtn">Export Queue</button>
+      <button class="btn secondary" id="clearBtn">Clear Form</button>
+    </div>
+
+    <div style="margin-top:12px" class="tiny muted">
+      <div><strong>Notes:</strong> Load patients from the search box on the right. UHID/Name/Phone are non-editable when loaded from registration records. Serial increments per doctor and resets daily.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel right">
+    <div>
+      <label>Search patient (UHID / Name / Phone)</label>
+      <div style="display:flex;gap:8px">
+        <input id="searchBox" placeholder="Search by UHID, name or phone" />
+        <button class="btn secondary" id="searchBtn">Search</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="tiny muted"><strong>Today's OPD Queue (by doctor)</strong></div>
+      <div style="margin-top:6px">
+        <label>Filter by Doctor</label>
+        <select id="filterDoctor" style="width:100%" >
+          <option>All Doctors</option>
+          <option>Dr Rohan</option>
+          <option>Dr Sharma</option>
+          <option>Dr Mehra</option>
+        </select>
+      </div>
+
+      <div id="queueContainer" style="margin-top:12px"></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="tiny muted"><strong>Recent Registrations</strong></div>
+      <div id="recentList" class="recent-list"></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="tiny muted"><strong>System</strong></div>
+      <ul class="tiny muted">
+        <li>OPD serials reset daily; queue is per doctor.</li>
+        <li>Data stored locally for demo (localStorage keys: patients & OPD queue).</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* LocalStorage keys */
+const PAT_KEY = 'hms_v2_patients_v2';          // registration data (you used earlier)
+const OPD_KEY = 'hms_v2_opd_queue_v1';         // queue with status
+
+/* helper: today's date dd/mm/yyyy */
+function pad(n){ return n<10 ? '0'+n : String(n); }
+function today_ddmmyyyy(){
+  const d = new Date();
+  return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear();
+}
+
+/* load sample registration data if not present (keeps same key you used earlier) */
+function ensureSamplePatients(){
+  if(!localStorage.getItem(PAT_KEY)){
+    const samples = [
+      {uhid:'9700', reg_date:'19/12/2025', first_name:'Ramya', middle_name:'', last_name:'Pant', relation_text:'', district:'Pithoragarh', tehsil:'', block:'', village:'', address:'Near Bus Stand, Gular, Pithoragarh', gender:'Female', dob:'', age:'32 yrs 0 mos', phone:'+91-8587855587', doctor:'Dr Rohan'},
+      {uhid:'9702', reg_date:'22/12/2025', first_name:'Jagdish', middle_name:'Chandra', last_name:'Joshi', relation_text:'Uttam Kumar Joshi', district:'Pithoragarh', tehsil:'', block:'', village:'', address:'Bus Station, Gular, Binn, Pithoragarh', gender:'Male', age:'6 yrs 6 mos', phone:'+91-7656565656', doctor:'Dr Sharma'}
+    ];
+    localStorage.setItem(PAT_KEY, JSON.stringify(samples));
+  }
+}
+
+/* OPD queue helpers */
+function loadOPD(){ try{ return JSON.parse(localStorage.getItem(OPD_KEY) || '[]'); } catch(e){ return []; } }
+function saveOPD(a){ localStorage.setItem(OPD_KEY, JSON.stringify(a)); }
+
+/* render recent registrations in right panel */
+function renderRecent(){
+  const recentList = document.getElementById('recentList');
+  const all = JSON.parse(localStorage.getItem(PAT_KEY) || '[]').slice(-30).reverse();
+  recentList.innerHTML = '';
+  all.forEach(p=>{
+    const div = document.createElement('div');
+    div.className = 'recent-item';
+    div.innerHTML = `<b>${p.uhid}</b> — ${[p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ')}<div class="tiny-muted">${p.phone || ''} • ${p.district || ''} • ${p.reg_date || ''}</div>`;
+    div.addEventListener('click', ()=>{ loadPatientToForm(p.uhid); });
+    recentList.appendChild(div);
+  });
+}
+
+/* load a patient (by UHID) into left form (non-editable fields) */
+function loadPatientToForm(uhid){
+  const patients = JSON.parse(localStorage.getItem(PAT_KEY) || '[]');
+  const p = patients.find(x=> x.uhid == uhid);
+  if(!p) { alert('Patient not found'); return; }
+  document.getElementById('uhid').value = p.uhid;
+  document.getElementById('full_name').value = [p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ');
+  // address concat: address, village, block, tehsil, district
+  const addrParts = [];
+  if(p.address) addrParts.push(p.address);
+  if(p.village) addrParts.push(p.village);
+  if(p.block) addrParts.push(p.block);
+  if(p.tehsil) addrParts.push(p.tehsil);
+  if(p.district) addrParts.push(p.district);
+  document.getElementById('address').value = addrParts.join(', ');
+  document.getElementById('gender').value = p.gender || '';
+  document.getElementById('age').value = p.age || '';
+  document.getElementById('phone').value = p.phone || '';
+  if(p.doctor) document.getElementById('doctor').value = p.doctor;
+}
+
+/* search on right panel (connected with registration) - shows popup results */
+function doSearchRight(){
+  const q = (document.getElementById('searchBox').value || '').toLowerCase().trim();
+  const all = JSON.parse(localStorage.getItem(PAT_KEY) || '[]');
+  // remove previous popup
+  document.querySelectorAll('.results-popup').forEach(n=>n.remove());
+  if(!q){ renderRecent(); return; }
+  const res = all.filter(p=>{
+    const fullname = [p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ').toLowerCase();
+    return (p.uhid && p.uhid.includes(q)) || fullname.includes(q) || (p.phone && p.phone.toLowerCase().includes(q));
+  });
+  if(res.length === 0){
+    if(confirm('No patient found. Register new patient?')) {
+      // in real app, link to registration flow. For demo simply alert.
+      alert('Open Registration form (demo).');
+    }
+    document.getElementById('searchBox').value = '';
+    return;
+  }
+  const popup = document.createElement('div');
+  popup.className = 'results-popup';
+  popup.style.marginTop = '8px';
+  popup.innerHTML = res.slice(0,12).map(r=>`<div class="result-item" data-uhid="${r.uhid}"><b>${r.uhid}</b> — ${[r.first_name,r.middle_name,r.last_name].filter(Boolean).join(' ')} <div class="tiny-muted">${r.phone||''} • ${r.district||''} • ${r.reg_date||''}</div></div>`).join('');
+  popup.querySelectorAll('.result-item').forEach(it=>{
+    it.addEventListener('click', ()=>{ 
+      const u = it.dataset.uhid;
+      loadPatientToForm(u);
+      popup.remove();
+    });
+  });
+  document.querySelector('.panel.right').appendChild(popup);
+  document.getElementById('searchBox').value = '';
+}
+
+/* serial logic: next serial per doctor for today */
+function nextSerialForDoctor(doctorName){
+  const key = 'serials_v1';
+  const today = today_ddmmyyyy();
+  let map = {};
+  try{ map = JSON.parse(localStorage.getItem(key) || '{}'); } catch(e){ map = {}; }
+  if(!map[today]) map[today] = {};
+  if(!map[today][doctorName]) map[today][doctorName] = 1;
+  const next = map[today][doctorName];
+  // increment stored value for next time
+  map[today][doctorName] = next + 1;
+  localStorage.setItem(key, JSON.stringify(map));
+  return next;
+}
+
+/* render queue in right panel grouped by doctor and showing status */
+function renderQueue(){
+  const container = document.getElementById('queueContainer');
+  container.innerHTML = '';
+  const filter = document.getElementById('filterDoctor').value;
+  const queue = loadOPD();
+  const doctors = ['Dr Rohan','Dr Sharma','Dr Mehra'];
+  doctors.forEach(doc=>{
+    if(filter !== 'All Doctors' && filter !== doc) return;
+    const header = document.createElement('div');
+    header.className = 'queue-doctor';
+    header.textContent = doc;
+    container.appendChild(header);
+
+    const items = queue.filter(q=> q.doctor === doc);
+    if(items.length === 0){
+      const none = document.createElement('div');
+      none.className = 'tiny-muted';
+      none.textContent = 'No patients for this doctor';
+      container.appendChild(none);
+      return;
+    }
+
+    items.forEach((it, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'queue-entry';
+      // status badge class
+      let stClass = 'st-wait';
+      let stText = 'Waiting';
+      if(it.status === 'IN_PROGRESS'){ stClass = 'st-progress'; stText = 'In Progress'; }
+      if(it.status === 'COMPLETED'){ stClass = 'st-complete'; stText = 'Completed'; }
+
+      const left = document.createElement('div');
+      left.className = 'queue-left';
+      left.innerHTML = `<div><b>${String(it.serial).padStart(2,'0')}</b> — ${it.name}</div>
+                        <div class="queue-meta">${it.uhid} • ${it.phone || ''} • ${it.date}</div>`;
+
+      const right = document.createElement('div');
+      right.className = 'queue-actions';
+      // status badge
+      const st = document.createElement('div');
+      st.className = 'status-badge '+stClass;
+      st.textContent = stText;
+      right.appendChild(st);
+
+
+
+      // Remove button: mark completed (or remove from queue)
+      const remBtn = document.createElement('button');
+      remBtn.className = 'small-btn';
+      remBtn.textContent = 'Remove';
+      remBtn.addEventListener('click', ()=>{ if(confirm('Remove this patient from queue?')) removeFromQueue(it.uid); });
+      right.appendChild(remBtn);
+
+      row.appendChild(left);
+      row.appendChild(right);
+      container.appendChild(row);
+    });
+  });
+}
+
+/* generate a unique id for each queue entry */
+function uid(){ return 'q_' + Date.now() + '_' + Math.floor(Math.random()*9999); }
+
+/* add to OPD queue */
+function addToQueue(){
+  const uhid = document.getElementById('uhid').value;
+  if(!uhid){ alert('Load patient from registration (search on right) before adding.'); return; }
+  const queue = loadOPD();
+  const entry = {
+    uid: uid(),
+    serial: nextSerialForDoctor(document.getElementById('doctor').value),
+    uhid: uhid,
+    name: document.getElementById('full_name').value,
+    phone: document.getElementById('phone').value,
+    doctor: document.getElementById('doctor').value,
+    date: today_ddmmyyyy(),
+    notes: document.getElementById('op_notes').value || '',
+    amount: document.getElementById('amount').value || '',
+    visitType: document.getElementById('visitType').value,
+    status: 'WAITING'
+  };
+  queue.push(entry);
+  saveOPD(queue);
+  // clear form (but keep doctor selection)
+  clearFormFields(false);
+  renderQueue();
+}
+
+/* remove from queue - mark completed and remove from list */
+function removeFromQueue(uidVal){
+  let q = loadOPD();
+  q = q.filter(x=> x.uid !== uidVal);
+  saveOPD(q);
+  renderQueue();
+}
+
+/* set status by uid */
+function setStatus(uidVal, st){
+  const q = loadOPD();
+  const idx = q.findIndex(x=> x.uid === uidVal);
+  if(idx === -1) return;
+  q[idx].status = st;
+  saveOPD(q);
+  renderQueue();
+}
+
+/* clear the left-side patient form */
+function clearFormFields(fullClear=true){
+  document.getElementById('uhid').value = '';
+  document.getElementById('full_name').value = '';
+  document.getElementById('gender').value = '';
+  document.getElementById('relation_text').value = '';
+  document.getElementById('age').value = '';
+  document.getElementById('phone').value = '';
+  document.getElementById('address').value = '';
+  document.getElementById('op_notes').value = '';
+  document.getElementById('amount').value = '';
+  document.getElementById('visitType').value = 'NEW';
+  if(fullClear){
+    document.getElementById('doctor').value = 'Dr Rohan';
+  }
+}
+
+/* remove first occurrence of a patient's queue item for Remove from Queue button (left panel) */
+function removeFromQueueBtn(){
+  const uhid = document.getElementById('uhid').value;
+  if(!uhid){ alert('No patient loaded'); return; }
+  const q = loadOPD();
+  // remove earliest entry for this UHID
+  const idx = q.findIndex(x=> x.uhid === uhid);
+  if(idx === -1){ alert('This patient is not in queue'); return; }
+  if(!confirm('Remove this patient from queue?')) return;
+  q.splice(idx,1);
+  saveOPD(q);
+  renderQueue();
+  clearFormFields();
+}
+
+/* print token/receipt - demo */
+function printToken(){
+  const name = document.getElementById('full_name').value || '[No patient loaded]';
+  alert('Print Token (demo) for ' + name);
+}
+function printReceipt(){
+  const name = document.getElementById('full_name').value || '[No patient loaded]';
+  alert('Print Receipt (demo) for ' + name);
+}
+
+/* export queue */
+function exportQueue(){
+  const data = loadOPD();
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'opd_queue_export.json'; a.click();
+}
+
+/* wire up search box on right panel - connected to registration data */
+document.getElementById('searchBtn').addEventListener('click', doSearchRight);
+document.getElementById('searchBox').addEventListener('keydown', (e)=>{ if(e.key === 'Enter') doSearchRight(); });
+
+document.getElementById('addQueueBtn').addEventListener('click', addToQueue);
+document.getElementById('removeFromQueueBtn').addEventListener('click', removeFromQueueBtn);
+document.getElementById('printTokenBtn').addEventListener('click', printToken);
+document.getElementById('printReceiptBtn').addEventListener('click', printReceipt);
+document.getElementById('exportQueueBtn').addEventListener('click', exportQueue);
+document.getElementById('clearBtn').addEventListener('click', ()=>{ clearFormFields(); });
+
+document.getElementById('filterDoctor').addEventListener('change', renderQueue);
+
+/* init */
+(function init(){
+  ensureSamplePatients();
+  document.getElementById('today_date').value = today_ddmmyyyy();
+  // determine a default next serial (show estimate using stored serial map)
+  // For display only, we don't consume serial until addToQueue
+  document.getElementById('serial_next').value = '—';
+  renderRecent();
+  renderQueue();
+})();
+</script>
+</body>
+</html>

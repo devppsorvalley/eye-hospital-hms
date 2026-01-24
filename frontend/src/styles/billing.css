@@ -1,0 +1,358 @@
+/* Billing Container */
+.billing-container {
+  padding: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 24px;
+  color: #0f6b63;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e1e7e6;
+}
+
+/* Layout */
+.billing-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.billing-left-panel {
+  flex: 1;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.billing-right-panel {
+  width: 320px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+/* Rows and Grids */
+.billing-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.billing-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+/* Form Fields */
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 4px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-field input:disabled,
+.form-field select:disabled,
+.form-field textarea:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #0f6b63;
+  box-shadow: 0 0 0 2px rgba(15,107,99,0.1);
+}
+
+/* Patient Details Box */
+.patient-details-box {
+  background: #f4f7f6;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+/* Buttons */
+.btn-primary {
+  background: #0f6b63;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0d5a53;
+  box-shadow: 0 2px 6px rgba(15,107,99,0.3);
+}
+
+.btn-primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-danger:disabled {
+  background: #dc2626;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-danger-small {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger-small:hover {
+  background: #b91c1c;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Charges Row Alignment */
+.billing-row {
+  gap: 10px;
+}
+
+.billing-row .form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.billing-row .form-field label {
+  margin-bottom: 4px;
+  height: 18px;
+}
+
+.billing-row .form-field input,
+.billing-row .form-field select,
+.billing-row .form-field button {
+  height: 38px;
+}
+
+/* Bill Items Table */
+.bill-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border: 1px solid #e1e7e6;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.bill-table thead {
+  background: #f4f7f6;
+}
+
+.bill-table th {
+  padding: 10px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  border-bottom: 2px solid #e1e7e6;
+}
+
+.bill-table td {
+  padding: 10px;
+  font-size: 14px;
+  border-bottom: 1px solid #e1e7e6;
+}
+
+.bill-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.bill-table .no-data {
+  text-align: center;
+  color: #9ca3af;
+  padding: 30px;
+}
+
+/* Right Panel */
+.search-results {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e1e7e6;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.result-item {
+  padding: 12px;
+  border-bottom: 1px solid #e1e7e6;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.result-item:hover {
+  background: #f9fafb;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-item .small {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.today-bills-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.bill-item {
+  padding: 12px;
+  border: 1px solid #e1e7e6;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bill-item:hover {
+  border-color: #0f6b63;
+  box-shadow: 0 2px 6px rgba(15,107,99,0.15);
+}
+
+.bill-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.bill-meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.bill-type {
+  font-size: 11px;
+  color: #0f6b63;
+  background: #e6f4f3;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* Dividers */
+hr {
+  border: none;
+  border-top: 1px solid #e1e7e6;
+  margin: 20px 0;
+}
+
+h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 15px 0 10px;
+}
+
+.no-data {
+  text-align: center;
+  color: #9ca3af;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .billing-layout {
+    flex-direction: column;
+  }
+
+  .billing-right-panel {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .billing-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .billing-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-container {
+    padding: 10px;
+  }
+}

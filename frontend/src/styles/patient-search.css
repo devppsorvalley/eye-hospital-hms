@@ -1,0 +1,9 @@
+.patient-search-container {
+  margin-bottom: 16px;
+}
+
+.tiny-error {
+  font-size: 11px;
+  color: #d9534f;
+  margin-top: 4px;
+}
