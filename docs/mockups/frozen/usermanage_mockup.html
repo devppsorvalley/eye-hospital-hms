@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>User & Role Management — Seemant Eye Hospital</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --brand:#0f6b63;
+  --bg:#f4f7f6;
+  --card:#ffffff;
+  --border:#e1e7e6;
+  --text:#222;
+  --muted:#6b6f73;
+  --danger:#d9534f;
+}
+body{
+  margin:0;
+  font-family:Segoe UI,Roboto,Arial;
+  background:var(--bg);
+  color:var(--text)
+}
+header{
+  background:var(--brand);
+  color:#fff;
+  padding:10px 16px;
+  font-weight:600;
+  text-align:center
+}
+.container{
+  display:flex;
+  gap:12px;
+  padding:12px
+}
+.panel{
+  background:var(--card);
+  border-radius:6px;
+  box-shadow:0 1px 6px rgba(0,0,0,.06);
+  padding:12px
+}
+.left{flex:1}
+.right{width:360px}
+
+h2{margin:0 0 10px 0;color:#0f6b63}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px
+}
+input,select{
+  width:100%;
+  padding:8px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  font-size:14px;
+  box-sizing:border-box
+}
+
+.row{display:flex;gap:10px;margin-bottom:10px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.btn{
+  padding:7px 12px;
+  border-radius:4px;
+  border:none;
+  cursor:pointer;
+  font-size:13px
+}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.secondary{background:#f0f0f0;border:1px solid #ccc}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.small{padding:4px 8px;font-size:12px}
+
+hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+
+/* User list */
+.user-row{
+  display:grid;
+  grid-template-columns:40px 1.5fr 1fr 1fr 80px 100px;
+  gap:8px;
+  align-items:center;
+  padding:8px;
+  border-bottom:1px solid var(--border);
+  font-size:13px
+}
+.user-row.header{
+  font-weight:600;
+  background:#f7f9f9
+}
+.status{
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:10px;
+  font-weight:600
+}
+.status.active{background:#d4edda;color:#155724}
+.status.inactive{background:#f8d7da;color:#721c24}
+</style>
+</head>
+
+<body>
+
+<header>User & Role Management — Seemant Eye Hospital</header>
+
+<div class="container">
+
+<!-- LEFT PANEL -->
+<div class="panel left">
+  <h2>Add / Update User</h2>
+
+  <div class="grid-3">
+    <div>
+      <label>Username *</label>
+      <input id="username">
+    </div>
+    <div>
+      <label>Full Name *</label>
+      <input id="fullname">
+    </div>
+    <div>
+      <label>Role *</label>
+      <select id="role" onchange="toggleDoctorField()">
+        <option value="">Select role</option>
+        <option>Admin</option>
+        <option>Doctor</option>
+        <option>OPD Reception</option>
+        <option>OT Reception</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:8px">
+    <div>
+      <label>Mobile</label>
+      <input id="mobile" placeholder="+91-xxxxxxxxxx">
+    </div>
+    <div>
+      <label>Status</label>
+      <select id="status">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+    <div id="doctorField" style="display:none">
+      <label>Doctor Name (for OPD Queue)</label>
+      <input id="doctorName" placeholder="Dr Rohan">
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:14px">
+    <button class="btn primary" onclick="saveUser()">Add / Update User</button>
+    <button class="btn secondary" onclick="clearForm()">Clear Form</button>
+  </div>
+
+  <hr>
+
+  <h3>User List</h3>
+
+  <div class="user-row header">
+    <div>#</div>
+    <div>Username</div>
+    <div>Name</div>
+    <div>Role</div>
+    <div>Status</div>
+    <div>Action</div>
+  </div>
+
+  <div id="userList"></div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel right">
+  <h3>System Notes</h3>
+  <ul style="font-size:13px;color:#555">
+    <li>Roles control screen visibility and actions.</li>
+    <li>Doctor role is used for OPD queue & consultation.</li>
+    <li>Users are stored locally for demo.</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+const USER_KEY = 'hms_users_v1';
+let editingId = null;
+
+function loadUsers(){
+  return JSON.parse(localStorage.getItem(USER_KEY) || '[]');
+}
+function saveUsers(arr){
+  localStorage.setItem(USER_KEY, JSON.stringify(arr));
+}
+
+function toggleDoctorField(){
+  document.getElementById('doctorField').style.display =
+    document.getElementById('role').value === 'Doctor' ? 'block' : 'none';
+}
+
+function saveUser(){
+  const u = document.getElementById('username').value.trim();
+  const n = document.getElementById('fullname').value.trim();
+  const r = document.getElementById('role').value;
+  if(!u || !n || !r){ alert('Username, Name and Role are mandatory'); return; }
+
+  let users = loadUsers();
+
+  if(editingId){
+    const idx = users.findIndex(x=>x.id===editingId);
+    users[idx] = collectUser(editingId);
+  }else{
+    users.push(collectUser('u_'+Date.now()));
+  }
+  saveUsers(users);
+  clearForm();
+  renderUsers();
+}
+
+function collectUser(id){
+  return {
+    id,
+    username: username.value,
+    fullname: fullname.value,
+    role: role.value,
+    mobile: mobile.value,
+    status: status.value,
+    doctorName: doctorName.value
+  };
+}
+
+function editUser(id){
+  const u = loadUsers().find(x=>x.id===id);
+  editingId = id;
+  username.value = u.username;
+  fullname.value = u.fullname;
+  role.value = u.role;
+  mobile.value = u.mobile;
+  status.value = u.status;
+  doctorName.value = u.doctorName || '';
+  toggleDoctorField();
+}
+
+function deleteUser(id){
+  if(!confirm('Delete this user?')) return;
+  saveUsers(loadUsers().filter(x=>x.id!==id));
+  renderUsers();
+}
+
+function clearForm(){
+  editingId = null;
+  username.value = fullname.value = mobile.value = doctorName.value = '';
+  role.value = '';
+  status.value = 'Active';
+  toggleDoctorField();
+}
+
+function renderUsers(){
+  const list = document.getElementById('userList');
+  list.innerHTML='';
+  loadUsers().forEach((u,i)=>{
+    const div=document.createElement('div');
+    div.className='user-row';
+    div.innerHTML=`
+      <div>${i+1}</div>
+      <div>${u.username}</div>
+      <div>${u.fullname}</div>
+      <div>${u.role}</div>
+      <div><span class="status ${u.status==='Active'?'active':'inactive'}">${u.status}</span></div>
+      <div>
+        <button class="btn small secondary" onclick="editUser('${u.id}')">Edit</button>
+        <button class="btn small danger" onclick="deleteUser('${u.id}')">Delete</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+/* Init */
+renderUsers();
+</script>
+
+</body>
+</html>
