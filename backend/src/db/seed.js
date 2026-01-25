@@ -38,22 +38,22 @@ async function seedDatabase() {
     const users = [
       {
         username: 'admin',
-        password: 'admin@123',
+        password: 'admin123',
         role: 'ADMIN',
       },
       {
-        username: 'doctor',
-        password: 'doctor@123',
+        username: 'dr.aditya',
+        password: 'aditya123',
         role: 'DOCTOR',
       },
       {
-        username: 'reception',
-        password: 'reception@123',
-        role: 'RECEPTION',
+        username: 'operator',
+        password: 'operator123',
+        role: 'OPERATOR',
       },
       {
         username: 'billing',
-        password: 'billing@123',
+        password: 'billing123',
         role: 'BILLING',
       },
     ];
@@ -81,7 +81,7 @@ async function seedDatabase() {
     // ============================================================================
     console.log('👨‍⚕️ Seeding doctors...');
     const doctors = [
-      'Dr. Rohan Sharma',
+      'Dr. Aditya',
       'Dr. Priya Mehta',
       'Dr. Vikram Patel',
       'Dr. Anjali Singh',
@@ -101,11 +101,10 @@ async function seedDatabase() {
     // ============================================================================
     console.log('🏥 Seeding visit types...');
     const visitTypes = [
-      { name: 'General Eye Checkup', amount: 100 },
-      { name: 'Cataract Surgery', amount: 5000 },
-      { name: 'LASIK Consultation', amount: 500 },
-      { name: 'Retina Checkup', amount: 300 },
-      { name: 'Contact Lens Fitting', amount: 200 },
+      { name: 'New', amount: 30 },
+      { name: 'Follow-up', amount: 0 },
+      { name: 'Express', amount: 250 },
+      { name: 'ECHS', amount: 300 },
     ];
     for (const vt of visitTypes) {
       await client.query(
@@ -122,9 +121,9 @@ async function seedDatabase() {
     // ============================================================================
     console.log('🏷️ Seeding service categories...');
     const categories = [
-      'Consultation',
-      'Tests & Diagnostics',
-      'Surgery',
+      'Cash/UPI/Card',
+      'Ayushman',
+      'ECHS',
       'Medication',
       'Accessories',
     ];
@@ -141,7 +140,7 @@ async function seedDatabase() {
     // ============================================================================
     // 6. SERVICE CHARGES
     // ============================================================================
-    console.log('💰 Seeding service charges...');
+    /*console.log('💰 Seeding service charges...');
     const charges = [
       { category: 'Consultation', name: 'General Checkup', rate: 200 },
       { category: 'Consultation', name: 'Specialist Consultation', rate: 500 },
@@ -171,7 +170,7 @@ async function seedDatabase() {
       console.log(`  ✓ ${charge.name} (₹${charge.rate})`);
     }
     console.log('✅ Service charges seeded\n');
-
+    */
     // ============================================================================
     // 7. ICD MASTER
     // ============================================================================
@@ -221,7 +220,7 @@ async function seedDatabase() {
         gender: 'Female',
         dob: '1992-05-15',
         phone: '9876543210',
-        district: 'Mumbai',
+        district: 'Pithoragarh',
         address: '123, Main Street',
       },
       {
@@ -231,7 +230,7 @@ async function seedDatabase() {
         gender: 'Male',
         dob: '2015-06-20',
         phone: '9876543211',
-        district: 'Pune',
+        district: 'Pithoragarh',
         address: '456, Oak Avenue',
       },
       {
@@ -241,7 +240,7 @@ async function seedDatabase() {
         gender: 'Female',
         dob: '1995-08-10',
         phone: '9876543212',
-        district: 'Bangalore',
+        district: 'Pithoragarh',
         address: '789, Pine Road',
       },
     ];

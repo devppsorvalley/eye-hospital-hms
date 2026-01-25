@@ -647,7 +647,7 @@ export default function Registration() {
                 <label>Doctor (optional)</label>
                 <select name="doctor" value={formData.doctor} onChange={handleChange}>
                   <option value="">-- select --</option>
-                  <option value="Dr. Sharma">Dr. Sharma</option>
+                  <option value="Dr. Aditya">Dr. Aditya</option>
                   <option value="Dr. Kumar">Dr. Kumar</option>
                   <option value="Dr. Patel">Dr. Patel</option>
                 </select>
