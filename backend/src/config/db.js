@@ -1,7 +1,11 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
-// PostgreSQL connection pool
+const sslConfig = process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false;
+console.log('DB_SSL:', process.env.DB_SSL);
+console.log('SSL config for Pool:', sslConfig);
+
+// PostgreSQL connection pool with SSL support for RDS
 export const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
@@ -11,6 +15,7 @@ export const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  ssl: sslConfig,
 });
 
 // Test connection
