@@ -1,5 +1,5 @@
-import bcryptjs from 'bcryptjs';
 import { pool } from '../config/db.js';
+import bcryptjs from 'bcryptjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -21,7 +21,7 @@ async function seedDatabase() {
     // 1. ROLES
     // ============================================================================
     console.log('📋 Seeding roles...');
-    const roles = ['ADMIN', 'DOCTOR', 'OPERATOR'];
+    const roles = ['ADMIN', 'DOCTOR', 'RECEPTION', 'BILLING', 'OPERATOR'];
     for (const role of roles) {
       await client.query(
         `INSERT INTO roles (name) VALUES ($1) 
@@ -38,18 +38,23 @@ async function seedDatabase() {
     const users = [
       {
         username: 'admin',
-        password: 'admin123',
+        password: 'admin@123',
         role: 'ADMIN',
       },
       {
         username: 'doctor',
-        password: 'doctor123',
+        password: 'doctor@123',
         role: 'DOCTOR',
       },
       {
-        username: 'operator',
-        password: 'operator123',
-        role: 'OPERATOR',
+        username: 'reception',
+        password: 'reception@123',
+        role: 'RECEPTION',
+      },
+      {
+        username: 'billing',
+        password: 'billing@123',
+        role: 'BILLING',
       },
     ];
 
@@ -76,14 +81,15 @@ async function seedDatabase() {
     // ============================================================================
     console.log('👨‍⚕️ Seeding doctors...');
     const doctors = [
-      'Dr. Aditya',
+      'Dr. Rohan Sharma',
       'Dr. Priya Mehta',
       'Dr. Vikram Patel',
       'Dr. Anjali Singh',
     ];
     for (const doctorName of doctors) {
       await client.query(
-        `INSERT INTO doctors (name, is_active) VALUES ($1, true)`,
+        `INSERT INTO doctors (name, is_active) VALUES ($1, true)
+         ON CONFLICT DO NOTHING`,
         [doctorName]
       );
       console.log(`  ✓ ${doctorName}`);
@@ -95,10 +101,11 @@ async function seedDatabase() {
     // ============================================================================
     console.log('🏥 Seeding visit types...');
     const visitTypes = [
-      { name: 'New', amount: 30 },
-      { name: 'Follow-up', amount: 0 },
-      { name: 'Express', amount: 250 },
-      { name: 'ECHS', amount: 300 },
+      { name: 'General Eye Checkup', amount: 100 },
+      { name: 'Cataract Surgery', amount: 5000 },
+      { name: 'LASIK Consultation', amount: 500 },
+      { name: 'Retina Checkup', amount: 300 },
+      { name: 'Contact Lens Fitting', amount: 200 },
     ];
     for (const vt of visitTypes) {
       await client.query(
@@ -115,9 +122,9 @@ async function seedDatabase() {
     // ============================================================================
     console.log('🏷️ Seeding service categories...');
     const categories = [
-      'Cash/UPI/Card',
-      'Ayushman',
-      'ECHS',
+      'Consultation',
+      'Tests & Diagnostics',
+      'Surgery',
       'Medication',
       'Accessories',
     ];
@@ -130,7 +137,7 @@ async function seedDatabase() {
       console.log(`  ✓ ${cat}`);
     }
     console.log('✅ Categories seeded\n');
-/*
+
     // ============================================================================
     // 6. SERVICE CHARGES
     // ============================================================================
@@ -164,98 +171,32 @@ async function seedDatabase() {
       console.log(`  ✓ ${charge.name} (₹${charge.rate})`);
     }
     console.log('✅ Service charges seeded\n');
-*/
+
     // ============================================================================
     // 7. ICD MASTER
     // ============================================================================
     console.log('📋 Seeding ICD codes...');
     const icdCodes = [
-  // REFRACTIVE ERRORS & ACCOMMODATION (H52)
-  { code: 'H52.0', desc: 'Hypermetropia (Farsightedness)' },
-  { code: 'H52.1', desc: 'Myopia (Nearsightedness)' },
-  { code: 'H52.2', desc: 'Astigmatism' },
-  { code: 'H52.3', desc: 'Anisometropia and Aniseikonia' },
-  { code: 'H52.4', desc: 'Presbyopia' },
-
-  // CATARACT (H25–H28)
-  { code: 'H25.0', desc: 'Senile Cataract' },
-  { code: 'H25.1', desc: 'Senile Nuclear Cataract' },
-  { code: 'H25.2', desc: 'Senile Cortical Cataract' },
-  { code: 'H25.9', desc: 'Senile Cataract, Unspecified' },
-  { code: 'H26.0', desc: 'Infantile and Juvenile Cataract' },
-  { code: 'H26.9', desc: 'Cataract, Unspecified' },
-  { code: 'H28', desc: 'Cataract in Other Diseases' },
-
-  // GLAUCOMA (H40–H42)
-  { code: 'H40.0', desc: 'Glaucoma Suspect' },
-  { code: 'H40.1', desc: 'Primary Open-Angle Glaucoma' },
-  { code: 'H40.2', desc: 'Primary Angle-Closure Glaucoma' },
-  { code: 'H40.3', desc: 'Secondary Glaucoma' },
-  { code: 'H40.8', desc: 'Other Glaucoma' },
-  { code: 'H42', desc: 'Glaucoma in Other Diseases' },
-
-  // CONJUNCTIVA (H10–H13)
-  { code: 'H10.0', desc: 'Mucopurulent Conjunctivitis' },
-  { code: 'H10.1', desc: 'Acute Atopic Conjunctivitis' },
-  { code: 'H10.4', desc: 'Chronic Conjunctivitis' },
-  { code: 'H11.0', desc: 'Pterygium' },
-  { code: 'H11.1', desc: 'Pinguecula' },
-
-  // CORNEA (H16–H18)
-  { code: 'H16.0', desc: 'Corneal Ulcer' },
-  { code: 'H16.1', desc: 'Superficial Keratitis' },
-  { code: 'H17', desc: 'Corneal Scars and Opacities' },
-  { code: 'H18.6', desc: 'Keratoconus' },
-
-  // UVEA / IRIS (H20–H22)
-  { code: 'H20.0', desc: 'Acute and Subacute Iridocyclitis (Uveitis)' },
-  { code: 'H20.9', desc: 'Uveitis, Unspecified' },
-  { code: 'H21.0', desc: 'Hyphema' },
-
-  // LENS DISORDERS (H27)
-  { code: 'H27.0', desc: 'Aphakia' },
-  { code: 'H27.1', desc: 'Dislocation of Lens' },
-
-  // VITREOUS & RETINA (H33–H36, H43)
-  { code: 'H33.0', desc: 'Retinal Detachment' },
-  { code: 'H34.0', desc: 'Retinal Artery Occlusion' },
-  { code: 'H34.8', desc: 'Retinal Vein Occlusion' },
-  { code: 'H35.3', desc: 'Age-Related Macular Degeneration' },
-  { code: 'H35.9', desc: 'Retinal Disorder, Unspecified' },
-  { code: 'H36.0', desc: 'Diabetic Retinopathy' },
-  { code: 'H43.1', desc: 'Vitreous Hemorrhage' },
-  { code: 'H43.8', desc: 'Other Vitreous Disorders' },
-
-  // OPTIC NERVE & VISUAL PATHWAY (H46–H47)
-  { code: 'H46', desc: 'Optic Neuritis' },
-  { code: 'H47.2', desc: 'Optic Atrophy' },
-
-  // STRABISMUS & BINOCULAR MOVEMENT (H49–H50)
-  { code: 'H49.0', desc: 'Oculomotor Nerve Palsy' },
-  { code: 'H50.0', desc: 'Esotropia' },
-  { code: 'H50.1', desc: 'Exotropia' },
-  { code: 'H50.9', desc: 'Strabismus, Unspecified' },
-
-  // AMBLYOPIA & VISUAL DISTURBANCES (H53–H54)
-  { code: 'H53.0', desc: 'Amblyopia (Lazy Eye)' },
-  { code: 'H53.1', desc: 'Subjective Visual Disturbances' },
-  { code: 'H54', desc: 'Visual Impairment / Blindness' },
-
-  // NYSTAGMUS & EYE MOVEMENT (H55)
-  { code: 'H55', desc: 'Nystagmus' },
-
-  // EYELID & LACRIMAL SYSTEM (H00–H06)
-  { code: 'H00.0', desc: 'Hordeolum (Stye)' },
-  { code: 'H01.0', desc: 'Blepharitis' },
-  { code: 'H02.1', desc: 'Entropion and Trichiasis' },
-  { code: 'H04.1', desc: 'Dry Eye Syndrome' },
-  { code: 'H04.5', desc: 'Dacryocystitis' },
-
-  // ORBIT & EYE PAIN (H05, H57)
-  { code: 'H05.2', desc: 'Orbital Cellulitis' },
-  { code: 'H57.1', desc: 'Eye Pain' },
-  { code: 'H57.8', desc: 'Other Disorders of Eye and Adnexa' }
-];
+      { code: 'H52.2', desc: 'Astigmatism' },
+      { code: 'H52.0', desc: 'Hypermetropia' },
+      { code: 'H52.1', desc: 'Myopia' },
+      { code: 'H25.0', desc: 'Senile Cataract' },
+      { code: 'H26.9', desc: 'Cataract (Unspecified)' },
+      { code: 'H42', desc: 'Glaucoma' },
+      { code: 'H40.2', desc: 'Acute Angle Closure Glaucoma' },
+      { code: 'H35.3', desc: 'Diabetic Retinopathy' },
+      { code: 'H33.0', desc: 'Retinal Detachment with Retinal Break' },
+      { code: 'H34.1', desc: 'Central Retinal Artery Occlusion' },
+      { code: 'H34.8', desc: 'Central Retinal Vein Occlusion' },
+      { code: 'H44.0', desc: 'Purulent Endophthalmitis' },
+      { code: 'H16.0', desc: 'Corneal Ulcer' },
+      { code: 'H16.2', desc: 'Keratoconjunctivitis' },
+      { code: 'H43.1', desc: 'Vitreous Hemorrhage' },
+      { code: 'H27.0', desc: 'Aphakia' },
+      { code: 'S05.1', desc: 'Contusion of Eyeball and Orbital Tissues' },
+      { code: 'H53.0', desc: 'Amblyopia (Lazy Eye)' },
+      { code: 'H55', desc: 'Nystagmus' },
+    ];
 
     for (const icd of icdCodes) {
       await client.query(
@@ -341,4 +282,3 @@ seedDatabase().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
