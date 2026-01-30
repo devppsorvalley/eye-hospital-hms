@@ -8,6 +8,6 @@ ALTER TABLE patients ADD COLUMN IF NOT EXISTS photo TEXT;
 COMMENT ON COLUMN patients.photo IS 'Patient photo stored as base64 encoded string (JPEG format)';
 
 -- Migration tracking
-INSERT INTO migrations (migration_file, applied_at)
-VALUES ('005_add_patient_photo.sql', NOW())
+INSERT INTO migrations (name, migration_file, applied_at)
+VALUES ('Add patient photo column', '005_add_patient_photo.sql', NOW())
 ON CONFLICT (migration_file) DO NOTHING;
