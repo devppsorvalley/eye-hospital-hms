@@ -42,14 +42,19 @@ async function seedDatabase() {
         role: 'ADMIN',
       },
       {
-        username: 'doctor',
-        password: 'doctor123',
+        username: 'dr.aditya',
+        password: 'aditya123',
         role: 'DOCTOR',
       },
       {
         username: 'operator',
         password: 'operator123',
         role: 'OPERATOR',
+      },
+      {
+        username: 'billing',
+        password: 'billing123',
+        role: 'BILLING',
       },
     ];
 
@@ -134,7 +139,7 @@ async function seedDatabase() {
     // ============================================================================
     // 6. SERVICE CHARGES
     // ============================================================================
-    console.log('💰 Seeding service charges...');
+    /*console.log('💰 Seeding service charges...');
     const charges = [
       { category: 'Consultation', name: 'General Checkup', rate: 200 },
       { category: 'Consultation', name: 'Specialist Consultation', rate: 500 },
@@ -164,7 +169,7 @@ async function seedDatabase() {
       console.log(`  ✓ ${charge.name} (₹${charge.rate})`);
     }
     console.log('✅ Service charges seeded\n');
-*/
+    */
     // ============================================================================
     // 7. ICD MASTER
     // ============================================================================
@@ -280,7 +285,7 @@ async function seedDatabase() {
         gender: 'Female',
         dob: '1992-05-15',
         phone: '9876543210',
-        district: 'Mumbai',
+        district: 'Pithoragarh',
         address: '123, Main Street',
       },
       {
@@ -290,7 +295,7 @@ async function seedDatabase() {
         gender: 'Male',
         dob: '2015-06-20',
         phone: '9876543211',
-        district: 'Pune',
+        district: 'Pithoragarh',
         address: '456, Oak Avenue',
       },
       {
@@ -300,7 +305,7 @@ async function seedDatabase() {
         gender: 'Female',
         dob: '1995-08-10',
         phone: '9876543212',
-        district: 'Bangalore',
+        district: 'Pithoragarh',
         address: '789, Pine Road',
       },
     ];
