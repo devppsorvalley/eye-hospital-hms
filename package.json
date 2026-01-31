@@ -9,6 +9,7 @@
     "migrate": "node src/db/migrate.js",
     "seed": "node src/db/seed-users.js",
     "validate": "node src/db/validate.js",
+    "format": "prettier --write .",
     "setup": "npm run migrate && npm run seed && npm run validate"
   },
   "dependencies": {
