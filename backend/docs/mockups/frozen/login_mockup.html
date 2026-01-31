@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Login — Seemant Eye Hospital</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --brand:#0f6b63;
+  --bg:#f4f7f6;
+  --card:#ffffff;
+  --border:#e1e7e6;
+  --text:#222;
+  --muted:#6b6f73;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Segoe UI, Roboto, Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
+
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  background:var(--brand);
+  color:#fff;
+  padding:12px;
+  text-align:center;
+  font-weight:600;
+}
+
+.login-card{
+  background:var(--card);
+  width:360px;
+  padding:24px;
+  border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.08);
+}
+
+.login-title{
+  text-align:center;
+  font-size:18px;
+  font-weight:600;
+  color:var(--brand);
+  margin-bottom:20px;
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+  display:block;
+  margin-bottom:6px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:4px;
+  font-size:14px;
+  margin-bottom:14px;
+}
+
+input:focus{
+  outline:none;
+  border-color:var(--brand);
+}
+
+.btn{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:4px;
+  background:var(--brand);
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.btn:hover{
+  opacity:.95;
+}
+
+.footer-note{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:16px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Seemant Eye Hospital — HMS</header>
+
+<div class="login-card">
+  <div class="login-title">User Login</div>
+
+  <label>User</label>
+  <input type="text" placeholder="Enter username" autofocus>
+
+  <label>Password</label>
+  <input type="password" placeholder="Enter password">
+
+  <button class="btn">Login</button>
+
+  <div class="footer-note">
+    Authorized users only
+  </div>
+</div>
+
+</body>
+</html>
