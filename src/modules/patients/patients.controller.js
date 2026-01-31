@@ -1,0 +1,163 @@
+import {
+  registerPatient,
+  searchPatients,
+  getPatientByUHID,
+  updatePatient,
+  getPatientVisitHistory,
+  deletePatient,
+} from './patients.service.js';
+import { validatePatientRegistration, validatePatientUpdate } from './patients.validation.js';
+
+/**
+ * Register new patient
+ * POST /api/v1/patients
+ */
+export async function registerController(req, res, next) {
+  try {
+    // Validate input
+    const { error, value } = validatePatientRegistration(req.body);
+    if (error) {
+      return res.status(400).json({
+        message: 'Validation error',
+        errors: error.details.map((e) => e.message),
+      });
+    }
+
+    // Register patient
+    const patient = await registerPatient(value);
+
+    return res.status(201).json({
+      message: 'Patient registered successfully',
+      patient,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Search/list patients
+ * GET /api/v1/patients
+ */
+export async function searchController(req, res, next) {
+  try {
+    const { search, village, page = 1, limit = 10 } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10));
+
+    const result = await searchPatients(search || null, village || null, pageNum, limitNum);
+
+    return res.status(200).json({
+      message: 'Patients retrieved successfully',
+      ...result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Get patient by UHID
+ * GET /api/v1/patients/:uhid
+ */
+export async function getController(req, res, next) {
+  try {
+    const { uhid } = req.params;
+
+    if (!uhid) {
+      return res.status(400).json({ message: 'UHID is required' });
+    }
+
+    const patient = await getPatientByUHID(uhid);
+
+    return res.status(200).json({
+      message: 'Patient retrieved successfully',
+      patient,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Update patient
+ * PUT /api/v1/patients/:uhid
+ */
+export async function updateController(req, res, next) {
+  try {
+    const { uhid } = req.params;
+
+    if (!uhid) {
+      return res.status(400).json({ message: 'UHID is required' });
+    }
+
+    // Log photo data received
+
+    // Validate input
+    const { error, value } = validatePatientUpdate(req.body);
+    if (error) {
+      return res.status(400).json({
+        message: 'Validation error',
+        errors: error.details.map((e) => e.message),
+      });
+    }
+
+    // Log photo after validation
+
+    // Update patient
+    const patient = await updatePatient(uhid, value);
+
+    return res.status(200).json({
+      message: 'Patient updated successfully',
+      patient,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Get patient visit history
+ * GET /api/v1/patients/:uhid/visits
+ */
+export async function visitHistoryController(req, res, next) {
+  try {
+    const { uhid } = req.params;
+
+    if (!uhid) {
+      return res.status(400).json({ message: 'UHID is required' });
+    }
+
+    const visits = await getPatientVisitHistory(uhid);
+
+    return res.status(200).json({
+      message: 'Patient visit history retrieved successfully',
+      uhid,
+      total_visits: visits.length,
+      visits,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Delete patient (soft delete)
+ * DELETE /api/v1/patients/:uhid
+ */
+export async function deleteController(req, res, next) {
+  try {
+    const { uhid } = req.params;
+
+    if (!uhid) {
+      return res.status(400).json({ message: 'UHID is required' });
+    }
+
+    const result = await deletePatient(uhid);
+
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
