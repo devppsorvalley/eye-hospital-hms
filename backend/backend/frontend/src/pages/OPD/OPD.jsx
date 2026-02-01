@@ -1,0 +1,751 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import axios from '../../api/axios';
+import Layout from '../../components/layout/Layout';
+import PatientSearch from '../../components/common/PatientSearch';
+import '../../styles/opd.css';
+
+export default function OPD() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [formData, setFormData] = useState({
+    uhid: '',
+    first_name: '',
+    last_name: '',
+    phone: '',
+    gender: '',
+    age: '',
+    village: '',
+    doctor_id: '',
+    visit_type_id: '',
+    visit_amount: '',
+    visit_date: new Date().toISOString().split('T')[0],
+    serial_no: null, // Store allocated serial for queue patients
+  });
+
+  const [queue, setQueue] = useState([]);
+  const [recentPatients, setRecentPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [visitTypes, setVisitTypes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [nextSerial, setNextSerial] = useState(0);
+  const [filterDoctor, setFilterDoctor] = useState('');
+  const [isQueuePatient, setIsQueuePatient] = useState(false); // Track if loaded from queue
+
+  useEffect(() => {
+    fetchQueue();
+    fetchRecentPatients();
+    fetchDoctors();
+    fetchVisitTypes();
+
+    // Load patient from navigation state if provided (from Registration page)
+    if (location.state?.patient) {
+      const patient = location.state.patient;
+      loadPatient({
+        uhid: patient.uhid,
+        first_name: patient.first_name,
+        last_name: patient.last_name,
+        phone: patient.phone,
+        gender: patient.gender,
+        age: patient.age,
+        village: patient.village,
+      });
+      // Clear the navigation state to prevent reloading on refresh
+      window.history.replaceState({}, document.title);
+    }
+
+    // Auto-refresh queue every 10 seconds to sync with consultation updates
+    const queueRefreshInterval = setInterval(() => {
+      fetchQueue(filterDoctor || null);
+    }, 10000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(queueRefreshInterval);
+  }, []);
+
+  useEffect(() => {
+    if (formData.doctor_id && formData.visit_date) {
+      fetchNextSerial();
+    } else {
+      setNextSerial(0);
+    }
+  }, [formData.doctor_id, formData.visit_date]);
+
+  const fetchQueue = async (doctorFilter = null) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      let url = `/opd?visit_date=${today}&limit=100`;
+      if (doctorFilter) {
+        url += `&doctor_id=${doctorFilter}`;
+      }
+      const response = await axios.get(url);
+      const queueData = response.data.data || [];
+      console.log('[OPD] Queue data fetched:', queueData.map(e => ({ 
+        id: e.id, uhid: e.uhid, doctor_id: e.doctor_id, doctor_name: e.doctor_name 
+      })));
+      setQueue(queueData);
+      
+      // Alert if any doctor has more than 2 patients
+      const doctorCounts = {};
+      queueData.forEach(entry => {
+        const docName = entry.doctor_name || 'Unknown';
+        doctorCounts[docName] = (doctorCounts[docName] || 0) + 1;
+      });
+      
+      Object.entries(doctorCounts).forEach(([docName, count]) => {
+        if (count > 2) {
+          console.warn(`⚠️ ${docName}'s queue has ${count} patients (>2)`);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to fetch OPD queue', err);
+    }
+  };
+
+  const fetchRecentPatients = async () => {
+    try {
+      const response = await axios.get('/patients?page=1&limit=5');
+      const patients = response.data.data || [];
+      console.log('[OPD] Recent patients fetched:', patients.length, patients);
+      setRecentPatients(patients);
+    } catch (err) {
+      console.error('[OPD] Failed to fetch recent patients', err);
+      console.error('[OPD] Error details:', err.response?.data);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    try {
+      const response = await axios.get('/masters/doctors');
+      const doctorsData = response.data.doctors || [];
+      console.log('[OPD] Doctors fetched:', doctorsData);
+      setDoctors(doctorsData);
+    } catch (err) {
+      console.error('Failed to fetch doctors', err);
+      // Mock data for development
+      setDoctors([
+        { id: 1, name: 'Dr. Sharma' },
+        { id: 2, name: 'Dr. Kumar' },
+      ]);
+    }
+  };
+
+  const fetchVisitTypes = async () => {
+    try {
+      const response = await axios.get('/masters/visit-types');
+      const visitTypesData = response.data.visitTypes || [];
+      console.log('[OPD] Visit types fetched:', visitTypesData);
+      // Map default_amount to amount for consistency
+      const mappedVisitTypes = visitTypesData.map(vt => ({
+        id: vt.id,
+        name: vt.name,
+        amount: vt.default_amount
+      }));
+      setVisitTypes(mappedVisitTypes);
+    } catch (err) {
+      console.error('Failed to fetch visit types', err);
+      // Mock data for development
+      setVisitTypes([
+        { id: 1, name: 'New', amount: 100 },
+        { id: 2, name: 'Follow-up', amount: 50 },
+        { id: 3, name: 'Express', amount: 200 },
+        { id: 4, name: 'ECHS', amount: 0 },
+      ]);
+    }
+  };
+
+  const fetchNextSerial = async () => {
+    if (!formData.doctor_id || !formData.visit_date) {
+      setNextSerial(0);
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`/opd?doctor_id=${formData.doctor_id}&visit_date=${formData.visit_date}&limit=100`);
+      const queueData = response.data.data || [];
+      const maxSerial = queueData.length > 0 ? Math.max(...queueData.map(q => q.serial_no || 0)) : 0;
+      setNextSerial(maxSerial + 1);
+    } catch (err) {
+      console.error('Failed to fetch next serial', err);
+      setNextSerial(1);
+    }
+  };
+
+  const checkFollowUp = async (uhid) => {
+    try {
+      // Check if patient has consulted in last 7 days
+      const response = await axios.get(`/opd/patient/${uhid}?limit=10`);
+      const opdHistory = response.data.data || [];
+      
+      if (opdHistory.length === 0) return false;
+      
+      // Get the most recent visit
+      const lastVisit = opdHistory[0];
+      const lastVisitDate = new Date(lastVisit.visit_date);
+      const today = new Date();
+      const daysDiff = Math.floor((today - lastVisitDate) / (1000 * 60 * 60 * 24));
+      
+      // Return true if last visit was within 7 days
+      return daysDiff >= 0 && daysDiff <= 7;
+    } catch (err) {
+      console.error('Failed to check follow-up status', err);
+      return false;
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Auto-load amount when visit type is selected
+    if (name === 'visit_type_id' && value) {
+      const visitType = visitTypes.find(vt => vt.id === parseInt(value));
+      if (visitType) {
+        setFormData(prev => ({ ...prev, visit_amount: visitType.amount }));
+      }
+    }
+  };
+
+  const loadFromQueue = (queueEntry) => {
+    setError('');
+    setMessage(`Loaded from queue: ${queueEntry.first_name} ${queueEntry.last_name} (Serial #${queueEntry.serial_no})`);
+    setIsQueuePatient(true); // Mark as queue patient
+    
+    setFormData({
+      uhid: queueEntry.uhid,
+      first_name: queueEntry.first_name || '',
+      last_name: queueEntry.last_name || '',
+      phone: queueEntry.phone || '',
+      gender: queueEntry.gender || '',
+      age: queueEntry.age ? queueEntry.age.toString() : '',
+      village: queueEntry.village || '',
+      doctor_id: queueEntry.doctor_id || '',
+      visit_type_id: queueEntry.visit_type_id || '',
+      visit_amount: queueEntry.visit_amount || '',
+      visit_date: new Date().toISOString().split('T')[0], // Always set to today
+      serial_no: queueEntry.serial_no, // Preserve allocated serial
+    });
+  };
+
+  const loadPatient = async (patient) => {
+    setError('');
+    setMessage('');
+    setIsQueuePatient(false); // Not from queue
+    
+    setFormData(prev => ({
+      ...prev,
+      uhid: patient.uhid,
+      first_name: patient.first_name || '',
+      last_name: patient.last_name || '',
+      phone: patient.phone || '',
+      gender: patient.gender || '',
+      age: patient.age ? patient.age.toString() : (patient.age_text || ''),
+      village: patient.village || '',
+      // Clear OPD details when loading from search
+      doctor_id: '',
+      visit_type_id: '',
+      visit_amount: '',
+      visit_date: new Date().toISOString().split('T')[0], // Default to today
+      serial_no: null,
+    }));
+    
+    // Check if follow-up and auto-select visit type
+    const isFollowUp = await checkFollowUp(patient.uhid);
+    if (isFollowUp && visitTypes.length > 0) {
+      const followUpType = visitTypes.find(vt => vt.name.toLowerCase() === 'follow-up');
+      if (followUpType) {
+        setFormData(prev => ({
+          ...prev,
+          visit_type_id: followUpType.id.toString(),
+          visit_amount: followUpType.amount,
+        }));
+        setMessage(`Loaded patient: ${patient.first_name} ${patient.last_name} (${patient.uhid}) - Follow-up detected!`);
+      } else {
+        setMessage(`Loaded patient: ${patient.first_name} ${patient.last_name} (${patient.uhid})`);
+      }
+    } else {
+      setMessage(`Loaded patient: ${patient.first_name} ${patient.last_name} (${patient.uhid})`);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+
+    console.log('[OPD] Form state before submit:', {
+      doctor_id: formData.doctor_id,
+      doctor_name: doctors.find(d => d.id === parseInt(formData.doctor_id))?.name,
+      visit_type_id: formData.visit_type_id,
+      visit_type_name: visitTypes.find(v => v.id === parseInt(formData.visit_type_id))?.name
+    });
+
+    // Validation
+    if (!formData.uhid) {
+      setError('Please search and select a patient');
+      return;
+    }
+    if (!formData.doctor_id) {
+      setError('Please select a doctor');
+      return;
+    }
+    if (!formData.visit_type_id) {
+      setError('Please select visit type');
+      return;
+    }
+
+    // Check if patient is already in queue with status != COMPLETED
+    const existingEntry = queue.find(
+      entry => entry.uhid === formData.uhid && 
+      entry.status !== 'COMPLETED' && 
+      entry.status !== 'completed'
+    );
+    
+    if (existingEntry) {
+      setError(`Patient is already in queue (Serial #${existingEntry.serial_no}) with status: ${existingEntry.status}. Cannot add again.`);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        uhid: formData.uhid,
+        doctor_id: parseInt(formData.doctor_id),
+        visit_type_id: parseInt(formData.visit_type_id),
+        visit_date: formData.visit_date,
+      };
+
+      console.log('[OPD] Submitting payload:', payload);
+      const response = await axios.post('/opd', payload);
+      const opdEntry = response.data.opd;
+      
+      setMessage(`Patient added to queue! Serial: ${opdEntry.serial_no}`);
+      await fetchQueue(filterDoctor || null);
+      
+      // Check if the selected doctor's queue now exceeds 2 patients
+      const updatedQueue = await axios.get(`/opd?visit_date=${formData.visit_date}&limit=100`);
+      const queueData = updatedQueue.data.data || [];
+      const assignedDoctorId = parseInt(formData.doctor_id);
+      const assignedDoctorCount = queueData.filter(entry => entry.doctor_id === assignedDoctorId).length;
+      
+      // Show alert only for the assigned doctor if queue exceeds 2 patients
+      if (assignedDoctorCount > 2) {
+        const doctor = doctors.find(d => d.id === assignedDoctorId);
+        alert(`⚠️ Alert: ${doctor?.name || 'Doctor'}'s queue now has ${assignedDoctorCount} patients (exceeds limit of 2)`);
+      }
+      
+      clearForm();
+    } catch (err) {
+      console.error('OPD entry error:', err);
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Failed to add patient to queue';
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearPatientOnly = () => {
+    setFormData(prev => ({
+      uhid: '',
+      first_name: '',
+      last_name: '',
+      phone: '',
+      gender: '',
+      age: '',
+      village: '',
+      doctor_id: prev.doctor_id,
+      visit_type_id: prev.visit_type_id,
+      visit_amount: prev.visit_amount,
+      visit_date: prev.visit_date,
+    }));
+    setMessage('');
+    setError('');
+  };
+
+  const clearForm = () => {
+    setFormData({
+      uhid: '',
+      first_name: '',
+      last_name: '',
+      phone: '',
+      gender: '',
+      age: '',
+      village: '',
+      doctor_id: '',
+      visit_type_id: '',
+      visit_amount: '',
+      visit_date: new Date().toISOString().split('T')[0],
+      serial_no: null,
+    });
+    setIsQueuePatient(false);
+    setNextSerial(0);
+    setMessage('');
+    setError('');
+  };
+
+  const updateStatus = async (opdId, newStatus) => {
+    try {
+      await axios.put(`/opd/${opdId}/status`, { status: newStatus });
+      setMessage(`Status updated to ${newStatus}`);
+      fetchQueue(filterDoctor || null);
+    } catch (err) {
+      console.error('Status update error:', err);
+      setError('Failed to update status');
+    }
+  };
+
+  const removeFromQueue = async () => {
+    if (!formData.serial_no || !isQueuePatient) {
+      alert('⚠️ Please load a patient from the queue first');
+      return;
+    }
+
+    if (!window.confirm(`Remove ${formData.first_name} ${formData.last_name} (Serial #${formData.serial_no}) from queue?\n\nSerial numbers will be reset for this doctor.`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // Find the OPD entry ID from queue
+      const queueEntry = queue.find(e => e.uhid === formData.uhid && e.serial_no === formData.serial_no);
+      if (!queueEntry) {
+        setError('Could not find queue entry');
+        return;
+      }
+
+      await axios.delete(`/opd/${queueEntry.id}`);
+      setMessage(`Patient removed from queue. Serial numbers have been reset.`);
+      await fetchQueue(filterDoctor || null);
+      clearForm();
+    } catch (err) {
+      console.error('Remove from queue error:', err);
+      const errorMsg = err.response?.data?.message || 'Failed to remove from queue';
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrintToken = () => {
+    if (!formData.uhid) {
+      alert('⚠️ Please load a patient first before printing token');
+      return;
+    }
+
+    // Check if patient is in today's queue
+    const patientInQueue = queue.find(entry => entry.uhid === formData.uhid && entry.status !== 'COMPLETED');
+    if (!patientInQueue) {
+      alert('⚠️ Patient must be added to the queue before printing token.\nPlease click "Add to Queue" first.');
+      return;
+    }
+    
+    const serialNumber = patientInQueue.serial_no || formData.serial_no || nextSerial;
+    
+    const printContent = `
+      <div style="font-family: Arial; padding: 20px; width: 300px;">
+        <h2 style="text-align: center;">OPD Token</h2>
+        <hr/>
+        <p><strong>Date:</strong> ${new Date(formData.visit_date).toLocaleDateString()}</p>
+        <p><strong>UHID:</strong> ${formData.uhid}</p>
+        <p><strong>Name:</strong> ${formData.first_name} ${formData.last_name}</p>
+        <p><strong>Serial:</strong> ${serialNumber}</p>
+        <p><strong>Doctor:</strong> ${doctors.find(d => d.id === parseInt(formData.doctor_id))?.name || 'N/A'}</p>
+        <hr/>
+        <p style="text-align: center; font-size: 12px;">Please wait for your serial number</p>
+      </div>
+    `;
+    
+    const printWindow = window.open('', '', 'width=400,height=600');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const handlePrintReceipt = () => {
+    if (!formData.uhid) {
+      alert('⚠️ Please load a patient first before printing receipt');
+      return;
+    }
+
+    // Check if patient is in today's queue
+    const patientInQueue = queue.find(entry => entry.uhid === formData.uhid && entry.status !== 'COMPLETED');
+    if (!patientInQueue) {
+      alert('⚠️ Patient must be added to the queue before printing receipt.\nPlease click "Add to Queue" first.');
+      return;
+    }
+    
+    const printContent = `
+      <div style="font-family: Arial; padding: 20px; width: 300px;">
+        <h2 style="text-align: center;">OPD Receipt</h2>
+        <hr/>
+        <p><strong>Date:</strong> ${new Date(formData.visit_date).toLocaleDateString()}</p>
+        <p><strong>UHID:</strong> ${formData.uhid}</p>
+        <p><strong>Name:</strong> ${formData.first_name} ${formData.last_name}</p>
+        <p><strong>Phone:</strong> ${formData.phone}</p>
+        <p><strong>Doctor:</strong> ${doctors.find(d => d.id === parseInt(formData.doctor_id))?.name || 'N/A'}</p>
+        <p><strong>Visit Type:</strong> ${visitTypes.find(v => v.id === parseInt(formData.visit_type_id))?.name || 'N/A'}</p>
+        <p><strong>Amount:</strong> ₹${formData.visit_amount}</p>
+        <hr/>
+        <p style="text-align: center; font-size: 12px;">Thank you for visiting</p>
+      </div>
+    `;
+    
+    const printWindow = window.open('', '', 'width=400,height=600');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const getStatusBadge = (status) => {
+    // Normalize status - backend returns uppercase with underscores
+    const normalizedStatus = status?.toUpperCase().replace('_', '-');
+    
+    const badges = {
+      'WAITING': { class: 'st-wait', label: 'Waiting' },
+      'IN-PROGRESS': { class: 'st-progress', label: 'In Progress' },
+      'COMPLETED': { class: 'st-complete', label: 'Completed' },
+      'CANCELLED': { class: 'st-cancelled', label: 'Cancelled' },
+    };
+    const badge = badges[normalizedStatus] || badges['WAITING'];
+    return <span className={`status-badge ${badge.class}`}>{badge.label}</span>;
+  };
+
+  // Group queue by doctor and apply filter
+  let filteredQueue = queue;
+  if (filterDoctor) {
+    filteredQueue = queue.filter(entry => entry.doctor_id === parseInt(filterDoctor));
+  }
+  
+  const queueByDoctor = filteredQueue.reduce((acc, entry) => {
+    const doctor = entry.doctor_name || 'Unknown Doctor';
+    if (!acc[doctor]) acc[doctor] = [];
+    acc[doctor].push(entry);
+    return acc;
+  }, {});
+
+  return (
+    <Layout>
+      <div className="opd-container">
+        <div className="opd-panel opd-left">
+          <div className="panel-title">OPD — Add to Queue</div>
+
+          {message && <div className="alert alert-success">{message}</div>}
+          {error && <div className="alert alert-error">{error}</div>}
+
+          <div className="opd-row">
+            <div style={{ flex: 1 }}>
+              <label>Service Name</label>
+              <input type="text" value="OPD" disabled className="disabled" />
+            </div>
+            <div style={{ width: '200px' }}>
+              <label>Visit Date <span className="required">*</span></label>
+              <input 
+                type="date" 
+                name="visit_date" 
+                value={formData.visit_date} 
+                onChange={handleChange}
+                disabled={isQueuePatient}
+                className={isQueuePatient ? 'disabled' : ''}
+              />
+              {isQueuePatient && <div className="tiny-muted">Last visit date (non-editable)</div>}
+            </div>
+            <div style={{ width: '110px' }}>
+              <label>Serial (Next)</label>
+              <input type="text" value={nextSerial} disabled className="disabled" />
+            </div>
+          </div>
+
+          <hr />
+
+          <h3>Patient (load from search)</h3>
+
+          <div className="grid-3">
+            <div>
+              <label>UHID <span className="required">*</span></label>
+              <input type="text" value={formData.uhid} disabled className="disabled" />
+            </div>
+            <div>
+              <label>Name</label>
+              <input type="text" value={`${formData.first_name} ${formData.last_name}`.trim()} disabled className="disabled" />
+            </div>
+            <div>
+              <label>Phone</label>
+              <input type="text" value={formData.phone} disabled className="disabled" />
+            </div>
+          </div>
+
+          <div className="grid-3">
+            <div>
+              <label>Gender</label>
+              <input type="text" value={formData.gender} disabled className="disabled" />
+            </div>
+            <div>
+              <label>Age</label>
+              <input type="text" value={formData.age} disabled className="disabled" />
+            </div>
+            <div>
+              <label>Village/City</label>
+              <input type="text" value={formData.village} disabled className="disabled" />
+            </div>
+          </div>
+
+          <hr />
+
+          <h3>OPD Details</h3>
+
+          <div className="grid-2">
+            <div>
+              <label>Doctor <span className="required">*</span></label>
+              <select name="doctor_id" value={formData.doctor_id} onChange={handleChange}>
+                <option value="">-- Select Doctor --</option>
+                {doctors.map(doc => (
+                  <option key={doc.id} value={doc.id}>{doc.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label>Visit Type <span className="required">*</span></label>
+              <select name="visit_type_id" value={formData.visit_type_id} onChange={handleChange}>
+                <option value="">-- Select Visit Type --</option>
+                {visitTypes.map(vt => (
+                  <option key={vt.id} value={vt.id}>{vt.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid-2">
+            <div>
+              <label>Amount (₹)</label>
+              <input 
+                type="number" 
+                name="visit_amount" 
+                value={formData.visit_amount} 
+                onChange={handleChange}
+                placeholder="Auto-filled from visit type"
+              />
+              <div className="tiny-muted">Amount can be edited</div>
+            </div>
+            <div></div>
+          </div>
+
+          <div className="actions">
+            <button 
+              type="submit" 
+              className="btn" 
+              onClick={handleSubmit} 
+              disabled={loading || (formData.uhid && queue.some(e => e.uhid === formData.uhid && e.status !== 'COMPLETED'))}
+            >
+              {loading ? 'Adding...' : (queue.some(e => e.uhid === formData.uhid && e.status !== 'COMPLETED') ? 'Already in Queue' : 'Add to Queue')}
+            </button>
+            <button type="button" className="btn-secondary" onClick={clearForm}>Clear All</button>
+            <button 
+              type="button" 
+              className="btn-secondary" 
+              onClick={removeFromQueue} 
+              disabled={!isQueuePatient || loading}
+              style={{ backgroundColor: isQueuePatient ? '#d9534f' : undefined, color: isQueuePatient ? 'white' : undefined }}
+            >
+              Remove from Queue
+            </button>
+            <button type="button" className="btn-secondary" onClick={handlePrintToken} disabled={!formData.uhid}>Print Token</button>
+            <button type="button" className="btn-secondary" onClick={handlePrintReceipt} disabled={!formData.uhid}>Print Receipt</button>
+          </div>
+
+          <div className="tiny muted" style={{ marginTop: '12px' }}>
+            <strong>Notes:</strong> Search patient on right panel, select doctor and visit type, then add to queue.
+            <br/>
+            <strong>Live Queue Data:</strong> Serial, UHID, Name (from patients), Visit Type, Amount, Status (all from opd_queue + JOINs)
+            <br/>
+            <strong>Follow-up Logic:</strong> If patient visited within last 7 days, Visit Type auto-sets to Follow-up
+          </div>
+        </div>
+
+        <div className="opd-panel opd-right">
+          <PatientSearch 
+            onSelectPatient={loadPatient}
+            showQuickReg={false}
+            onRegisterClick={() => navigate('/registration')}
+          />
+
+          <div style={{ marginTop: '16px' }}>
+            <div className="tiny muted"><strong>Live OPD Queue (Today)</strong></div>
+            <div style={{ marginTop: '8px' }}>
+              <label>Filter by Doctor</label>
+              <select 
+                value={filterDoctor} 
+                onChange={(e) => {
+                  setFilterDoctor(e.target.value);
+                  fetchQueue(e.target.value || null);
+                }}
+              >
+                <option value="">All Doctors</option>
+                {doctors.map(doc => (
+                  <option key={doc.id} value={doc.id}>{doc.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="queue-list">
+              {Object.keys(queueByDoctor).length === 0 && (
+                <div className="tiny muted" style={{ padding: '12px' }}>No patients in queue</div>
+              )}
+              {Object.keys(queueByDoctor).map(doctor => {
+                const doctorQueue = queueByDoctor[doctor];
+                const showAlert = doctorQueue.length > 2;
+                return (
+                  <div key={doctor}>
+                    <div className="queue-doctor" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>{doctor}</span>
+                      {showAlert && (
+                        <span style={{ fontSize: '11px', color: '#d9534f', fontWeight: 600 }}>
+                          ⚠️ {doctorQueue.length} patients
+                        </span>
+                      )}
+                    </div>
+                    {doctorQueue.map(entry => (
+                      <div 
+                        key={entry.id} 
+                        className="queue-entry queue-entry-clickable" 
+                        onClick={() => loadFromQueue(entry)}
+                        title="Click to load patient details for printing"
+                      >
+                        <div className="queue-left">
+                          <div><strong>#{entry.serial_no}</strong> — {entry.first_name} {entry.last_name}</div>
+                          <div className="queue-meta">{entry.uhid} • {entry.phone || 'No phone'}</div>
+                        </div>
+                        <div className="queue-actions">
+                          {getStatusBadge(entry.status)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginTop: '16px' }}>
+            <div className="tiny muted"><strong>Recent Registrations ({recentPatients.length})</strong></div>
+            <div className="recent-list">
+              {recentPatients.length === 0 && (
+                <div className="tiny muted" style={{ padding: '12px' }}>No recent registrations</div>
+              )}
+              {recentPatients.map((patient) => (
+                <div key={patient.uhid} className="recent-item" onClick={() => loadPatient(patient)}>
+                  <div className="recent-uhid">{patient.uhid}</div>
+                  <div className="recent-name">{patient.first_name} {patient.last_name}</div>
+                  <div className="recent-phone">{patient.phone || 'No phone'}</div>
+                  <div className="recent-date">{patient.registration_date?.split('T')[0]}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}

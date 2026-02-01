@@ -1,0 +1,190 @@
+import { useState, useEffect, useRef } from 'react';
+import axios from '../../api/axios';
+import { authStore } from '../../store/auth.store';
+import Chart from 'chart.js/auto';
+import '../../styles/dashboard.css';
+
+export default function Dashboard() {
+  const [overview, setOverview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const user = authStore.getUser();
+  
+  const doctorChartRef = useRef(null);
+  const genderChartRef = useRef(null);
+  const revenueChartRef = useRef(null);
+  
+  const doctorChartInstance = useRef(null);
+  const genderChartInstance = useRef(null);
+  const revenueChartInstance = useRef(null);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await axios.get('/dashboard/overview');
+        setOverview(response.data.data);
+      } catch (err) {
+        setError('Failed to load dashboard');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  useEffect(() => {
+    if (!overview || !overview.kpis) return;
+
+    // Destroy existing charts
+    if (doctorChartInstance.current) doctorChartInstance.current.destroy();
+    if (genderChartInstance.current) genderChartInstance.current.destroy();
+    if (revenueChartInstance.current) revenueChartInstance.current.destroy();
+
+    const kpis = overview.kpis;
+
+    // OPD per doctor chart
+    if (doctorChartRef.current) {
+      const doctors = kpis.opd_per_doctor || [];
+      doctorChartInstance.current = new Chart(doctorChartRef.current, {
+        type: 'bar',
+        data: {
+          labels: doctors.map(d => d.doctor_name || 'Unknown'),
+          datasets: [{
+            label: 'Patients',
+            data: doctors.map(d => d.total_visits || 0),
+            backgroundColor: '#0f6b63'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    // Gender distribution chart
+    if (genderChartRef.current) {
+      const demographics = kpis.demographics || { male: 0, female: 0, other: 0 };
+      genderChartInstance.current = new Chart(genderChartRef.current, {
+        type: 'pie',
+        data: {
+          labels: ['Male', 'Female', 'Other'],
+          datasets: [{
+            data: [demographics.male || 0, demographics.female || 0, demographics.other || 0],
+            backgroundColor: ['#4e79a7', '#f28e2b', '#e15759']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    // Revenue trend chart
+    if (revenueChartRef.current) {
+      const trends = kpis.trends || [];
+      revenueChartInstance.current = new Chart(revenueChartRef.current, {
+        type: 'line',
+        data: {
+          labels: trends.map(t => t.date || ''),
+          datasets: [{
+            label: 'Revenue ₹',
+            data: trends.map(t => t.total_amount || 0),
+            borderColor: '#0f6b63',
+            fill: false,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    return () => {
+      if (doctorChartInstance.current) doctorChartInstance.current.destroy();
+      if (genderChartInstance.current) genderChartInstance.current.destroy();
+      if (revenueChartInstance.current) revenueChartInstance.current.destroy();
+    };
+  }, [overview]);
+
+  if (loading) return <div className="dashboard"><p style={{ marginTop: 80 }}>Loading...</p></div>;
+  if (error) return <div className="dashboard"><p style={{ marginTop: 80 }}>{error}</p></div>;
+  if (!overview) return <div className="dashboard"><p style={{ marginTop: 80 }}>No data</p></div>;
+
+  const kpis = overview.kpis || {};
+
+  return (
+    <>
+      <header className="app-header">Seemant Eye Hospital — Dashboard</header>
+      
+      <div className="container">
+        {/* KPI ROW */}
+        <div className="kpi-grid">
+          <div className="kpi">
+            <h3>Patients Today</h3>
+            <div className="value">{kpis.registrations?.today || 0}</div>
+          </div>
+          <div className="kpi">
+            <h3>OPD Queue</h3>
+            <div className="value">{kpis.opd_visits?.today || 0}</div>
+          </div>
+          <div className="kpi">
+            <h3>Revenue Today (₹)</h3>
+            <div className="value">{(kpis.billing?.today_amount || 0).toLocaleString()}</div>
+          </div>
+          <div className="kpi">
+            <h3>Total Registrations</h3>
+            <div className="value">{kpis.registrations?.total || 0}</div>
+          </div>
+        </div>
+
+        {/* CHARTS */}
+        <div className="section">
+          <div className="card">
+            <h4>OPD Load by Doctor</h4>
+            <div className="chart-box">
+              <canvas ref={doctorChartRef}></canvas>
+            </div>
+          </div>
+
+          <div className="card">
+            <h4>Patient Gender Distribution</h4>
+            <div className="chart-box">
+              <canvas ref={genderChartRef}></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="card">
+            <h4>Daily Revenue Trend (Last 7 Days)</h4>
+            <div className="chart-box">
+              <canvas ref={revenueChartRef}></canvas>
+            </div>
+          </div>
+
+          <div className="card">
+            <h4>System Overview</h4>
+            <ul style={{ paddingLeft: '16px', lineHeight: '1.8' }}>
+              <li>Total Patients: {overview.system_stats?.total_patients || 0}</li>
+              <li>Active Doctors: {overview.system_stats?.active_doctors || 0}</li>
+              <li>Total Consultations: {overview.system_stats?.total_consultations || 0}</li>
+              <li>Active Users: {overview.system_stats?.active_users || 0}</li>
+              <li>Total Bills: {kpis.billing?.total_bills || 0}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="footer">
+          Dashboard • User: {user?.username} • Role: {user?.role}
+        </div>
+      </div>
+    </>
+  );
+}

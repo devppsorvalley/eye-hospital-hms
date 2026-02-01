@@ -51,11 +51,6 @@ async function seedDatabase() {
         password: 'operator123',
         role: 'OPERATOR',
       },
-      {
-        username: 'billing',
-        password: 'billing123',
-        role: 'BILLING',
-      },
     ];
 
     for (const user of users) {

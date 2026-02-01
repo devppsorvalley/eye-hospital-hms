@@ -1,0 +1,357 @@
+import { useState, useEffect } from 'react';
+import axios from '../../api/axios';
+import Layout from '../../components/layout/Layout';
+import '../../styles/registration.css';
+
+export default function Registration() {
+  const [formData, setFormData] = useState({
+    uhid: '',
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    relation_type: '',
+    relation_name: '',
+    gender: '',
+    dob: '',
+    age: '',
+    phone: '',
+    phone_code: '+91',
+    district: '',
+    tehsil: '',
+    block: '',
+    village: '',
+    address: '',
+    doctor: '',
+    referred_by: '',
+    chief_complaint: '',
+    registration_date: new Date().toISOString().split('T')[0],
+  });
+
+  const [recentPatients, setRecentPatients] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [editMode, setEditMode] = useState(false);
+
+  useEffect(() => {
+    fetchRecentPatients();
+  }, []);
+
+  const fetchRecentPatients = async () => {
+    try {
+      const response = await axios.get('/patients?page=1&limit=10');
+      setRecentPatients(response.data.data || []);
+    } catch (err) {
+      console.error('Failed to fetch recent patients', err);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Auto-calculate age from DOB
+    if (name === 'dob' && value) {
+      const today = new Date();
+      const birthDate = new Date(value);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      setFormData((prev) => ({ ...prev, age: `${age} yrs` }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      const payload = {
+        first_name: formData.first_name,
+        middle_name: formData.middle_name,
+        last_name: formData.last_name,
+        gender: formData.gender,
+        dob: formData.dob,
+        phone: formData.phone,
+        alternate_phone: '',
+        village: formData.village,
+        address: `${formData.address}, ${formData.block}, ${formData.tehsil}, ${formData.district}`.trim(),
+      };
+
+      if (editMode) {
+        await axios.put(`/patients/${formData.uhid}`, payload);
+        setMessage(`✓ Patient ${formData.uhid} updated successfully`);
+      } else {
+        const response = await axios.post('/patients', payload);
+        setMessage(`✓ Patient registered: UHID ${response.data.patient.uhid}`);
+      }
+
+      clearForm();
+      fetchRecentPatients();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    try {
+      const response = await axios.get(`/patients?search=${searchQuery}`);
+      setSearchResults(response.data.data || []);
+    } catch (err) {
+      console.error('Search failed', err);
+    }
+  };
+
+  const loadPatient = (patient) => {
+    setFormData({
+      uhid: patient.uhid,
+      first_name: patient.first_name || '',
+      middle_name: patient.middle_name || '',
+      last_name: patient.last_name || '',
+      relation_type: '',
+      relation_name: '',
+      gender: patient.gender || '',
+      dob: patient.dob ? patient.dob.split('T')[0] : '',
+      age: '',
+      phone: patient.phone || '',
+      phone_code: '+91',
+      district: '',
+      tehsil: '',
+      block: '',
+      village: patient.village || '',
+      address: patient.address || '',
+      doctor: '',
+      referred_by: '',
+      chief_complaint: '',
+      registration_date: patient.registration_date ? patient.registration_date.split('T')[0] : '',
+    });
+    setEditMode(true);
+    setSearchResults([]);
+  };
+
+  const clearForm = () => {
+    setFormData({
+      uhid: '',
+      first_name: '',
+      middle_name: '',
+      last_name: '',
+      relation_type: '',
+      relation_name: '',
+      gender: '',
+      dob: '',
+      age: '',
+      phone: '',
+      phone_code: '+91',
+      district: '',
+      tehsil: '',
+      block: '',
+      village: '',
+      address: '',
+      doctor: '',
+      referred_by: '',
+      chief_complaint: '',
+      registration_date: new Date().toISOString().split('T')[0],
+    });
+    setEditMode(false);
+    setMessage('');
+    setError('');
+  };
+
+  return (
+    <Layout>
+      <div className="reg-container">
+        {/* LEFT PANEL */}
+        <div className="reg-panel reg-left">
+          <div className="panel-title">Patient Registration</div>
+
+          {/* UHID & Date */}
+          <div className="reg-row" style={{ justifyContent: 'space-between' }}>
+            <div style={{ flex: 1 }}>
+              <label>UHID (Auto)</label>
+              <input
+                type="text"
+                value={formData.uhid}
+                disabled
+                placeholder="Auto-generated UHID"
+              />
+              <div className="tiny-muted">UHID is auto-generated on registration</div>
+            </div>
+            <div style={{ width: '200px' }}>
+              <label>Registration Date <span className="required">*</span></label>
+              <input
+                type="date"
+                name="registration_date"
+                value={formData.registration_date}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <hr />
+
+          {message && <div className="success-msg">{message}</div>}
+          {error && <div className="error-msg">{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            {/* Name */}
+            <div>
+              <label>Full Name <span className="required">*</span></label>
+              <div className="col-3">
+                <input name="first_name" value={formData.first_name} onChange={handleChange} placeholder="First name" required />
+                <input name="middle_name" value={formData.middle_name} onChange={handleChange} placeholder="Middle (optional)" />
+                <input name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Last name" required />
+              </div>
+            </div>
+
+            {/* Relation */}
+            <div className="reg-row" style={{ marginTop: '8px' }}>
+              <div style={{ flex: '0 0 160px' }}>
+                <label>Relation</label>
+                <select name="relation_type" value={formData.relation_type} onChange={handleChange}>
+                  <option value="">-- select --</option>
+                  <option>S/o</option>
+                  <option>D/o</option>
+                  <option>W/o</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label>Father's / Husband's Name</label>
+                <input name="relation_name" value={formData.relation_name} onChange={handleChange} placeholder="Enter name" />
+              </div>
+            </div>
+
+            {/* Address */}
+            <div style={{ marginTop: '10px' }}>
+              <label>District / Tehsil / Block / Village</label>
+              <div className="grid-2">
+                <input name="district" value={formData.district} onChange={handleChange} placeholder="District" />
+                <input name="tehsil" value={formData.tehsil} onChange={handleChange} placeholder="Tehsil" />
+              </div>
+              <div style={{ marginTop: '8px' }} className="grid-2">
+                <input name="block" value={formData.block} onChange={handleChange} placeholder="Block" />
+                <input name="village" value={formData.village} onChange={handleChange} placeholder="Village" required />
+              </div>
+              <div style={{ marginTop: '8px' }}>
+                <label>Address (Street / Locality)</label>
+                <textarea name="address" value={formData.address} onChange={handleChange} rows="2"></textarea>
+              </div>
+            </div>
+
+            {/* Demographics */}
+            <div className="grid-3" style={{ marginTop: '10px' }}>
+              <div>
+                <label>Gender <span className="required">*</span></label>
+                <select name="gender" value={formData.gender} onChange={handleChange} required>
+                  <option value="">-- select --</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label>Date of Birth <span className="required">*</span></label>
+                <input type="date" name="dob" value={formData.dob} onChange={handleChange} required />
+              </div>
+              <div>
+                <label>Age (auto-calculated)</label>
+                <input type="text" value={formData.age} disabled placeholder="Auto" />
+              </div>
+            </div>
+
+            {/* Phone / Doctor */}
+            <div className="grid-3" style={{ marginTop: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ width: '64px' }}>
+                  <label className="tiny-muted">Code</label>
+                  <input name="phone_code" value={formData.phone_code} onChange={handleChange} className="small" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label>Mobile <span className="required">*</span></label>
+                  <input name="phone" value={formData.phone} onChange={handleChange} placeholder="10-digit number" required />
+                </div>
+              </div>
+              <div>
+                <label>Doctor (optional)</label>
+                <select name="doctor" value={formData.doctor} onChange={handleChange}>
+                  <option>-- not assigned --</option>
+                </select>
+              </div>
+              <div>
+                <label>Referred By</label>
+                <input name="referred_by" value={formData.referred_by} onChange={handleChange} placeholder="Name / Org" />
+              </div>
+            </div>
+
+            {/* Chief Complaint */}
+            <div style={{ marginTop: '10px' }}>
+              <label>Chief Eye Complaint (optional)</label>
+              <textarea name="chief_complaint" value={formData.chief_complaint} onChange={handleChange} rows="3" placeholder="Describe complaint..."></textarea>
+            </div>
+
+            {/* Actions */}
+            <div className="reg-actions">
+              <button type="submit" className="btn" disabled={loading}>
+                {loading ? 'Saving...' : editMode ? 'Save Changes' : 'Register'}
+              </button>
+              <button type="button" className="btn-secondary" onClick={clearForm}>
+                Clear Form
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="reg-panel reg-right">
+          <div>
+            <label>Search Patient</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="UHID, name or phone"
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <button className="btn-secondary" onClick={handleSearch}>
+                Search
+              </button>
+            </div>
+          </div>
+
+          {searchResults.length > 0 && (
+            <div className="search-results">
+              {searchResults.map((p) => (
+                <div key={p.uhid} className="result-item" onClick={() => loadPatient(p)}>
+                  <strong>{p.uhid}</strong> - {p.first_name} {p.last_name}
+                  <div className="tiny-muted">{p.phone} • {p.village}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ marginTop: '12px' }}>
+            <div className="tiny-muted"><strong>Recent Registrations</strong></div>
+            <div className="recent-list">
+              {recentPatients.map((p) => (
+                <div key={p.uhid} className="result-item" onClick={() => loadPatient(p)}>
+                  <strong>{p.uhid}</strong> - {p.first_name} {p.last_name}
+                  <div className="tiny-muted">{p.village}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
