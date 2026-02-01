@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Master Service Charges — Seemant Eye Hospital</title>
+<style>
+:root{
+  --brand:#0f6b63; --bg:#f4f7f6; --card:#ffffff; --border:#e1e7e6; --text:#222; --muted:#6b6f73; --danger:#d9534f;
+}
+body{margin:0;font-family:Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+header{background:var(--brand);color:#fff;padding:10px 16px;font-weight:600;text-align:center}
+.container{display:flex;gap:12px;padding:12px}
+.panel{background:var(--card);border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.06);padding:12px}
+.left{flex:1}
+.right{width:320px}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+input,select,textarea{width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:14px;box-sizing:border-box}
+textarea{resize:vertical}
+.row{display:flex;gap:10px;margin-bottom:10px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btn{padding:7px 12px;border-radius:4px;border:none;cursor:pointer;font-size:13px}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.secondary{background:#f0f0f0;border:1px solid #ccc}
+.btn.danger{background:var(--danger);color:#fff}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+
+/* Charge list table */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+th{color:var(--muted);font-weight:600}
+.actions-col{white-space:nowrap}
+
+/* Recently added */
+.recent-item{border:1px solid var(--border);border-radius:4px;padding:8px;margin-bottom:8px}
+.recent-item b{display:block}
+.recent-item .meta{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>Master Service Charges — Seemant Eye Hospital</header>
+
+<div class="container">
+  <!-- LEFT PANEL -->
+  <div class="panel left">
+    <h3 style="margin-top:0">Add / Update Service Charge</h3>
+
+    <!-- FORM (Category FIRST as per v2 freeze) -->
+    <div class="grid-3">
+      <div>
+        <label>Category *</label>
+        <input list="categoryList" placeholder="Select or type category" />
+        <datalist id="categoryList">
+          <option value="Cash/UPI/Card"></option>
+          <option value="Ayushman"></option>
+          <option value="ECHS"></option>
+        </datalist>
+      </div>
+      <div>
+        <label>Charge Name *</label>
+        <input placeholder="e.g. OPD Consultation" />
+      </div>
+      <div>
+        <label>Default Rate (₹) *</label>
+        <input type="number" placeholder="e.g. 150" />
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:10px">
+      <div>
+        <label>Active</label>
+        <select>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:10px">
+      <label>Description (Optional)</label>
+      <textarea rows="2" placeholder="Notes for billing staff..."></textarea>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary">Add / Update Charge</button>
+      <button class="btn danger">Delete Selected</button>
+      <button class="btn secondary">Clear Form</button>
+    </div>
+
+    <hr>
+
+    <!-- CHARGE LIST (RESTORED FROM V1 FORMAT) -->
+    <h3>Charge List</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Charge Name</th>
+          <th>Rate (₹)</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th class="actions-col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>OPD Consultation</td>
+          <td>₹150</td>
+          <td>Cash/UPI/Card</td>
+          <td>Active</td>
+          <td class="actions-col"><button class="btn secondary">Edit</button> <button class="btn danger">Delete</button></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Refraction Test</td>
+          <td>₹200</td>
+          <td>Cash/UPI/Card</td>
+          <td>Active</td>
+          <td class="actions-col"><button class="btn secondary">Edit</button> <button class="btn danger">Delete</button></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Visual Field Test</td>
+          <td>₹500</td>
+          <td>Cash/UPI/Card</td>
+          <td>Active</td>
+          <td class="actions-col"><button class="btn secondary">Edit</button> <button class="btn danger">Delete</button></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Camp – Free</td>
+          <td>₹0</td>
+          <td>Camp</td>
+          <td>Active</td>
+          <td class="actions-col"><button class="btn secondary">Edit</button> <button class="btn danger">Delete</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel right">
+    <h3 style="margin-top:0">Recently Added Charges</h3>
+
+    <div class="recent-item">
+      <b>Camp – Free</b>
+      <div class="meta">₹0 • Camp</div>
+    </div>
+    <div class="recent-item">
+      <b>Visual Field Test</b>
+      <div class="meta">₹500 • Diagnostics</div>
+    </div>
+    <div class="recent-item">
+      <b>Refraction Test</b>
+      <div class="meta">₹200 • Diagnostics</div>
+    </div>
+    <div class="recent-item">
+      <b>OPD Consultation</b>
+      <div class="meta">₹150 • Cash/UPI/Card</div>
+    </div>
+
+    <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+      Click a recent item to edit it in the form.<br>
+      Data stored locally (localStorage).
+    </div>
+  </div>
+</div>
+<script>
+// Simple interactive mock logic using localStorage
+const KEY = 'service_charges_v2';
+let selectedIndex = null;
+
+function loadCharges(){
+  return JSON.parse(localStorage.getItem(KEY) || '[]');
+}
+function saveCharges(data){ localStorage.setItem(KEY, JSON.stringify(data)); }
+
+function render(){
+  const data = loadCharges();
+  const tbody = document.querySelector('tbody');
+  const recent = document.querySelector('.right');
+  tbody.innerHTML='';
+  data.forEach((c,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${i+1}</td><td>${c.name}</td><td>₹${c.rate}</td><td>${c.category}</td><td>${c.active?'Active':'Inactive'}</td><td class="actions-col"><button class="btn secondary" onclick="editCharge(${i})">Edit</button> <button class="btn danger" onclick="deleteCharge(${i})">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+  // recent
+  const items = data.slice(-5).reverse().map(c=>`<div class="recent-item"><b>${c.name}</b><div class="meta">₹${c.rate} • ${c.category}</div></div>`).join('');
+  recent.querySelectorAll('.recent-item').forEach(n=>n.remove());
+  recent.insertAdjacentHTML('beforeend', items);
+}
+
+function clearForm(){
+  document.querySelector('input[list]').value='';
+  document.querySelector('input[placeholder^="e.g. OPD"]').value='';
+  document.querySelector('input[type="number"]').value='';
+  document.querySelector('textarea').value='';
+  selectedIndex=null;
+}
+
+function addOrUpdate(){
+  const category=document.querySelector('input[list]').value;
+  const name=document.querySelector('input[placeholder^="e.g. OPD"]').value;
+  const rate=document.querySelector('input[type="number"]').value;
+  if(!category||!name||!rate){alert('Fill required fields');return;}
+  const data=loadCharges();
+  if(selectedIndex===null) data.push({category,name,rate,active:true});
+  else data[selectedIndex]={...data[selectedIndex],category,name,rate};
+  saveCharges(data); clearForm(); render();
+}
+
+function editCharge(i){ const c=loadCharges()[i]; selectedIndex=i; document.querySelector('input[list]').value=c.category; document.querySelector('input[placeholder^="e.g. OPD"]').value=c.name; document.querySelector('input[type="number"]').value=c.rate; }
+function deleteCharge(i){ if(confirm('Delete charge?')){ const d=loadCharges(); d.splice(i,1); saveCharges(d); render(); }}
+
+// wire buttons
+document.querySelector('.btn.primary').onclick=addOrUpdate;
+document.querySelector('.btn.secondary').onclick=clearForm;
+document.querySelector('.btn.danger').onclick=()=>{ if(selectedIndex!==null) deleteCharge(selectedIndex); else alert('Select a charge to delete'); };
+
+// init demo data
+if(loadCharges().length===0){ saveCharges([
+  {name:'OPD Consultation',rate:150,category:'Cash/UPI/Card',active:true},
+  {name:'Refraction Test',rate:200,category:'Cash/UPI/Card',active:true},
+  {name:'Visual Field Test',rate:500,category:'Cash/UPI/Card',active:true},
+  {name:'Camp – Free',rate:0,category:'Camp',active:true}
+]); }
+render();
+</script></body>
+</html>

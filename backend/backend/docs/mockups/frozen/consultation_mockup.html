@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Patient Consultation — Seemant Eye Hospital</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --brand:#0f6b63;
+  --bg:#f4f7f6;
+  --card:#ffffff;
+  --border:#e1e7e6;
+  --text:#222;
+  --muted:#6b6f73;
+}
+body{margin:0;font-family:Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+header{background:var(--brand);color:#fff;padding:10px 16px;font-weight:600;text-align:center}
+.container{display:flex;gap:12px;padding:12px}
+.panel{background:var(--card);border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.06);padding:12px}
+.left{flex:1}
+.right{width:340px}
+
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+input,textarea{
+  width:100%;padding:8px;border:1px solid var(--border);
+  border-radius:4px;font-size:14px;box-sizing:border-box
+}
+textarea{resize:vertical}
+.row{display:flex;gap:12px;margin-bottom:10px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{padding:7px 12px;border-radius:4px;border:none;cursor:pointer;font-size:13px}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.secondary{background:#f0f0f0;border:1px solid #ccc}
+.btn.small{padding:4px 8px;font-size:12px}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+
+/* Queue */
+.queue-item{
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:8px;
+  margin-top:6px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.queue-left{font-size:13px}
+.queue-meta{font-size:12px;color:var(--muted)}
+.status{
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:12px;
+  font-weight:600;
+}
+.waiting{background:#fff3cd;color:#856404}
+.progress{background:#cce5ff;color:#004085}
+.done{background:#d4edda;color:#155724}
+</style>
+</head>
+
+<body>
+<header>Patient Consultation — Seemant Eye Hospital</header>
+
+<div class="container">
+
+<!-- LEFT PANEL -->
+<div class="panel left">
+  <h3 style="margin:0 0 8px 0">Patient Consultation</h3>
+
+  <div style="margin-bottom:10px">
+    <b>Logged-in Doctor:</b> Dr Rohan
+  </div>
+
+  <hr>
+
+  <h4>Patient Details</h4>
+
+  <div class="grid-3">
+    <div>
+      <label>UHID</label>
+      <input id="p_uhid" disabled>
+    </div>
+    <div>
+      <label>OPD Serial No.</label>
+      <input id="p_serial" disabled>
+    </div>
+    <div>
+      <label>Gender</label>
+      <input id="p_gender" disabled>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div>
+      <label>Full Name</label>
+      <input id="p_name" disabled>
+    </div>
+    <div>
+      <label>Age</label>
+      <input id="p_age" disabled>
+    </div>
+    <div>
+      <label>Phone</label>
+      <input id="p_phone" disabled>
+    </div>
+  </div>
+
+  <hr>
+
+  <h4>Doctor’s Clinical Notes</h4>
+
+  <label>ICD Codes</label>
+  <select id="icdSelect" multiple style="padding:8px;border:1px solid var(--border);border-radius:4px;width:100%;font-size:14px">
+    <!-- populated by JS -->
+  </select>
+  <div style="font-size:12px;color:var(--muted);margin-top:4px">Hold Ctrl (Cmd on Mac) to select multiple codes</div>
+  <div id="selectedICD" style="margin-top:8px;padding:8px;background:#f9f9f9;border-radius:4px;font-size:13px"></div>
+
+  <label style="margin-top:10px">Diagnosis</label>
+  <textarea id="diag" rows="2"></textarea>
+
+  <label>Treatment Plan</label>
+  <textarea id="treat" rows="2"></textarea>
+
+  <label>Follow-up Instructions</label>
+  <textarea id="follow" rows="2"></textarea>
+
+  <hr>
+
+  <label>
+    <input type="checkbox" id="aiToggle"> Show AI Summary & Recommendation
+  </label>
+
+  <div id="aiBox" style="display:none;margin-top:8px">
+    <textarea rows="3">AI summary suggestion will appear here (demo)</textarea>
+    <div style="margin-top:6px">
+      👍 <button class="btn small secondary">Helpful</button>
+      👎 <button class="btn small secondary">Not Helpful</button>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:12px">
+    <button class="btn primary" onclick="updateConsultation()">Update</button>
+    <button class="btn secondary" onclick="clearForm()">Clear</button>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel right">
+  <h4>Today’s OPD Queue</h4>
+  <div id="queueList"></div>
+</div>
+
+</div>
+
+<script>
+const OPD_KEY = 'consult_opd_demo';
+const DOCTOR = 'Dr Rohan';
+
+// Sample ICD Codes for Eye Hospital
+const ICD_CODES = [
+  { code: 'H52.2', description: 'Astigmatism' },
+  { code: 'H52.0', description: 'Hypermetropia' },
+  { code: 'H52.1', description: 'Myopia' },
+  { code: 'H52.3', description: 'Anisometropia' },
+  { code: 'H52.4', description: 'Presbyopia' },
+  { code: 'H53.0', description: 'Amblyopia (Lazy Eye)' },
+  { code: 'H55', description: 'Nystagmus' },
+  { code: 'H50.0', description: 'Esotropia (Crossed Eyes)' },
+  { code: 'H50.1', description: 'Exotropia (Wall-eyed)' },
+  { code: 'H57.0', description: 'Iridocyclitis' },
+  { code: 'H66.0', description: 'Acute Otitis Media' },
+  { code: 'H60.0', description: 'Abscess of External Ear' },
+  { code: 'H25.0', description: 'Senile Cataract' },
+  { code: 'H26.9', description: 'Cataract (Unspecified)' },
+  { code: 'H42', description: 'Glaucoma' },
+  { code: 'H35.3', description: 'Diabetic Retinopathy' },
+  { code: 'H35.0', description: 'Retinopathy of Prematurity' },
+  { code: 'H33.0', description: 'Retinal Detachment' },
+  { code: 'H34.0', description: 'Central Retinal Artery Occlusion' },
+  { code: 'H34.1', description: 'Branch Retinal Artery Occlusion' }
+];
+
+function seedQueue(){
+  if(localStorage.getItem(OPD_KEY)) return;
+  const data = [
+    {uid:1,serial:1,uhid:'9701',name:'Ramya Pant',gender:'Female',age:'32 yrs',phone:'+91-8587855587',doctor:DOCTOR,status:'WAITING'},
+    {uid:2,serial:2,uhid:'9702',name:'Jagdish Joshi',gender:'Male',age:'6 yrs 6 mos',phone:'+91-7656565656',doctor:DOCTOR,status:'WAITING'},
+    {uid:3,serial:3,uhid:'9703',name:'Gungun Chand',gender:'Female',age:'31 yrs',phone:'+91-9000000000',doctor:DOCTOR,status:'WAITING'},
+    {uid:4,serial:4,uhid:'9704',name:'Niruta Chand',gender:'Female',age:'28 yrs',phone:'+91-9812345678',doctor:DOCTOR,status:'WAITING'}
+  ];
+  localStorage.setItem(OPD_KEY,JSON.stringify(data));
+}
+
+function loadQueue(){ return JSON.parse(localStorage.getItem(OPD_KEY)||'[]'); }
+function saveQueue(q){ localStorage.setItem(OPD_KEY,JSON.stringify(q)); }
+
+function renderQueue(){
+  const list=document.getElementById('queueList');
+  list.innerHTML='';
+  loadQueue().forEach(p=>{
+    const div=document.createElement('div');
+    div.className='queue-item';
+    div.innerHTML=`
+      <div class="queue-left">
+        <b>${String(p.serial).padStart(2,'0')}</b> — ${p.name}
+        <div class="queue-meta">${p.uhid} • ${p.phone}</div>
+      </div>
+      <div>
+        <span class="status ${p.status==='WAITING'?'waiting':p.status==='IN_PROGRESS'?'progress':'done'}">
+          ${p.status.replace('_',' ')}
+        </span>
+        <button class="btn small secondary" onclick="loadPatient(${p.uid})">Load</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function loadPatient(uid){
+  const p=loadQueue().find(x=>x.uid===uid);
+  if(!p) return;
+  p_uhid.value=p.uhid;
+  p_serial.value=p.serial;
+  p_name.value=p.name;
+  p_gender.value=p.gender;
+  p_age.value=p.age;
+  p_phone.value=p.phone;
+  setStatus(uid,'IN_PROGRESS');
+  document.getElementById('icdSelect').value='';
+  updateSelectedICD();
+}
+
+function setStatus(uid,st){
+  const q=loadQueue();
+  const i=q.findIndex(x=>x.uid===uid);
+  if(i>=0){ q[i].status=st; saveQueue(q); renderQueue(); }
+}
+
+function updateConsultation(){
+  const uhid=p_uhid.value;
+  if(!uhid){ alert('Load patient first'); return; }
+  const q=loadQueue();
+  const p=q.find(x=>x.uhid===uhid && x.doctor===DOCTOR);
+  if(!p){ alert('Patient not in queue'); return; }
+  p.status='COMPLETED';
+  saveQueue(q);
+  clearForm();
+  renderQueue();
+}
+
+function clearForm(){
+  p_uhid.value=p_serial.value=p_name.value=p_gender.value=p_age.value=p_phone.value='';
+  diag.value=treat.value=follow.value='';
+  document.getElementById('icdSelect').value='';
+  updateSelectedICD();
+}
+
+function populateICDCodes(){
+  const select=document.getElementById('icdSelect');
+  select.innerHTML='';
+  ICD_CODES.forEach(icd=>{
+    const opt=document.createElement('option');
+    opt.value=icd.code;
+    opt.text=`${icd.code} — ${icd.description}`;
+    select.appendChild(opt);
+  });
+  select.addEventListener('change',updateSelectedICD);
+}
+
+function updateSelectedICD(){
+  const select=document.getElementById('icdSelect');
+  const selected=[...select.selectedOptions].map(o=>o.value);
+  const div=document.getElementById('selectedICD');
+  if(selected.length===0){
+    div.innerHTML='<i>No ICD codes selected</i>';
+  } else {
+    const labels=selected.map(code=>{
+      const icd=ICD_CODES.find(x=>x.code===code);
+      return `<span style="display:inline-block;background:#e3f2fd;color:#1565c0;padding:4px 8px;border-radius:3px;margin:2px;font-size:12px">${code} — ${icd.description}</span>`;
+    });
+    div.innerHTML=labels.join('');
+  }
+}
+
+aiToggle.onchange=()=>aiBox.style.display=aiToggle.checked?'block':'none';
+
+populateICDCodes();
+seedQueue();
+renderQueue();
+</script>
+</body>
+</html>

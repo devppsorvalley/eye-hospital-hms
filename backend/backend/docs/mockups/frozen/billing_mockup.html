@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Patient Billing — Seemant Eye Hospital</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --brand:#0f6b63;
+  --bg:#f4f7f6;
+  --card:#ffffff;
+  --border:#e1e7e6;
+  --muted:#6b6f73;
+}
+body{margin:0;font-family:Segoe UI,Roboto,Arial;background:var(--bg)}
+header{background:var(--brand);color:#fff;padding:10px 16px;text-align:center;font-weight:600}
+
+.container{display:flex;gap:12px;padding:12px}
+.panel{background:var(--card);border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.06);padding:12px}
+.left{flex:1;min-width:760px}
+.right{width:320px}
+
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+input,select,textarea{
+  width:100%;padding:8px;border:1px solid var(--border);
+  border-radius:4px;font-size:14px;box-sizing:border-box
+}
+input[disabled],textarea[disabled],select[disabled]{background:#fafafa}
+
+.row{display:flex;gap:10px;margin-bottom:10px;align-items:flex-end}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+.btn{padding:7px 12px;border-radius:4px;border:none;cursor:pointer;font-size:13px}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.secondary{background:#f0f0f0;border:1px solid #ccc}
+.btn.danger{background:#d9534f;color:#fff}
+
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{border-bottom:1px solid #eee;padding:8px;font-size:14px;text-align:left}
+
+.section-title{font-weight:600;margin:10px 0}
+.result-item{padding:8px;border-bottom:1px solid #f2f5f4;cursor:pointer}
+.result-item:hover{background:#fafafa}
+.small{font-size:12px;color:#777}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+<header>Patient Billing — Seemant Eye Hospital</header>
+
+<div class="container">
+
+<!-- LEFT PANEL -->
+<div class="panel left">
+
+<!-- Top -->
+<div class="row">
+  <div style="width:150px">
+    <label>Date</label>
+    <input type="date" id="todayDate">
+  </div>
+  <div style="width:150px">
+    <label>Bill Date</label>
+    <input type="date" id="billDate">
+  </div>
+  <div style="flex:1">
+    <label>UHID (Search)</label>
+    <div style="display:flex;gap:6px">
+      <input id="uhidSearch" placeholder="Enter UHID">
+      <button class="btn secondary" onclick="searchByUHID()">Search</button>
+    </div>
+  </div>
+  <div style="width:120px">
+    <label>Bill No.</label>
+    <input value="Auto" disabled>
+  </div>
+</div>
+
+<hr>
+
+<!-- Patient Details -->
+<div class="section-title">Patient Details</div>
+<div style="background:#fafafa;border:1px solid #eee;padding:10px;border-radius:6px">
+  <div class="grid-3">
+    <div><label>UHID</label><input id="p_uhid" disabled></div>
+    <div><label>Name</label><input id="p_name" disabled></div>
+    <div><label>Gender</label><input id="p_gender" disabled></div>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div><label>Age</label><input id="p_age" disabled></div>
+    <div><label>Phone</label><input id="p_phone" disabled></div>
+    <div><label>Doctor</label><input id="p_doctor" disabled></div>
+  </div>
+  <div style="margin-top:8px">
+    <label>Address</label>
+    <textarea id="p_address" rows="2" disabled></textarea>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div><label>Time</label><input id="p_time" type="time" disabled></div>
+    <div><label>Relation (S/o / D/o / W/o)</label><input id="p_relation" disabled></div>
+    <div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- Charges -->
+<div class="section-title">Charges</div>
+
+<div class="row">
+  <div style="flex:1">
+    <label>Category</label>
+    <select id="chargeCategory" disabled></select>
+  </div>
+  <div style="flex:2">
+    <label>Charge</label>
+    <select id="chargeSelect" disabled></select>
+  </div>
+  <div style="width:80px">
+    <label>Qty</label>
+    <input id="qty" type="number" value="1" disabled>
+  </div>
+  <div style="width:120px">
+    <label>Rate</label>
+    <input id="rate" type="number" disabled>
+  </div>
+  <div style="width:80px">
+    <label>&nbsp;</label>
+    <button class="btn primary" id="addBtn" onclick="addCharge()" disabled>Add</button>
+  </div>
+</div>
+
+<table>
+<thead>
+<tr>
+  <th>Charge</th>
+  <th>Qty</th>
+  <th>Rate</th>
+  <th>Amount</th>
+  <th>Action</th>
+</tr>
+</thead>
+<tbody id="chargeTable">
+<tr><td colspan="5" class="small">No charges added</td></tr>
+</tbody>
+</table>
+
+<div class="row" style="justify-content:flex-end">
+  <div style="width:150px">
+    <label>Discount (₹)</label>
+    <input id="discount" type="number" value="0" oninput="updateTotal()">
+  </div>
+  <div style="width:200px">
+    <label>Total Amount (₹)</label>
+    <input id="total" disabled value="0">
+  </div>
+</div>
+
+<div class="grid-3">
+  <div>
+    <label>Admit Date</label>
+    <input type="date">
+  </div>
+  <div>
+    <label>Discharge Date</label>
+    <input type="date">
+  </div>
+  <div>
+    <label>Bill Type</label>
+    <select id="billType" onchange="handleBillType()">
+      <option>Cash</option>
+      <option>UPI</option>
+      <option>Credit/Debit Card</option>
+      <option>Ayushman</option>
+      <option>TPA</option>
+      <option>ESIS</option>
+      <option>ECHS</option>
+      <option>Golden Card</option>
+    </select>
+  </div>
+</div>
+
+<!-- Conditional fields -->
+<div id="upiFields" class="row hidden">
+  <div style="flex:1"><label>UPI Reference</label><input></div>
+</div>
+
+<div id="ayushmanFields" class="grid-3 hidden">
+  <div><label>Aadhaar No</label><input></div>
+  <div><label>Ayushman Card</label><input></div>
+  <div><label>Ration Card</label><input></div>
+</div>
+
+<div id="echsFields" class="grid-3 hidden">
+  <div><label>Referral No</label><input></div>
+  <div><label>Service No</label><input></div>
+  <div><label>Claim ID</label><input></div>
+</div>
+
+<div class="row" style="gap:10px">
+  <div style="flex:1">
+    <label>Operator Notes (optional)</label>
+    <textarea rows="2"></textarea>
+  </div>
+  <div style="width:220px">
+    <label>Guardian Name</label>
+    <input id="guardianName" placeholder="Guardian Name">
+  </div>
+</div>
+
+<div class="row">
+  <button class="btn primary" onclick="saveBill()">Save Bill</button>
+  <button class="btn secondary">Print Receipt</button>
+  <button class="btn secondary" onclick="location.reload()">Clear Form</button>
+  <button class="btn danger" onclick="deleteWholeBill()">Whole Bill Delete</button>
+</div>
+
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel right">
+  <label>Search patient (UHID / Name / Phone)</label>
+  <input id="rightSearch" oninput="searchPatient()">
+  <div id="searchResults" style="margin-top:8px"></div>
+
+  <hr>
+  <div class="section-title">Today's Bills (recent)</div>
+  <div id="todayBills"></div>
+
+  <hr>
+  <div class="small">
+    <ul>
+      <li>Bill editable up to 6 months</li>
+      <li>Offline demo (local data)</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* Dummy Data */
+const patients=[
+ {uhid:'9700',name:'Ramya Pant',gender:'Female',age:'32 yrs 0 mos',phone:'+91-8587855587',doctor:'Dr Rohan',address:'Near Bus Stand, Pithoragarh',relation:'D/o'},
+ {uhid:'9701',name:'Bhola Singh',gender:'Male',age:'45 yrs',phone:'+91-9876543210',doctor:'Dr Rohan',address:'Didihat',relation:'S/o'},
+ {uhid:'9702',name:'Jagdish Joshi',gender:'Male',age:'6 yrs',phone:'+91-7656565656',doctor:'Dr Sharma',address:'Binn',relation:'S/o'}
+];
+
+const todayBills=[
+ {billNo:'1',name:'Ramya Pant',uhid:'9700',amount:150}
+];
+
+const CHARGES=[
+ {cat:'Cash/UPI/Card',name:'OPD Consultation',rate:150},
+ {cat:'Cash/UPI/Card',name:'Express OPD',rate:250},
+ {cat:'Cash/UPI/Card',name:'Eye Test',rate:100},
+ {cat:'Cash/UPI/Card',name:'Refraction',rate:200},
+ {cat:'Ayushman',name:'Ayushman OPD',rate:0},
+ {cat:'Ayushman',name:'Ayushman Surgery',rate:0},
+ {cat:'ECHS',name:'ECHS OPD',rate:0},
+ {cat:'ECHS',name:'ECHS Procedure',rate:0},
+ {cat:'TPA',name:'TPA Consultation',rate:300},
+ {cat:'Golden Card',name:'Golden Card OPD',rate:50}
+];
+
+let billCharges=[];
+let currentPatient=null;
+
+/* Init */
+(function(){
+ const d=new Date().toISOString().slice(0,10);
+ todayDate.value=billDate.value=d;
+ const now=new Date();
+ p_time.value=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+ chargeCategory.innerHTML='<option value="">Select</option>'+
+ [...new Set(CHARGES.map(c=>c.cat))].map(c=>`<option>${c}</option>`).join('');
+ renderTodayBills();
+})();
+
+/* Search */
+function searchPatient(){
+ searchResults.innerHTML='';
+ patients.filter(p=>p.name.toLowerCase().includes(rightSearch.value.toLowerCase()))
+ .forEach(p=>{
+   searchResults.innerHTML+=`<div class="result-item" onclick='loadPatient(${JSON.stringify(p)})'>${p.uhid} — ${p.name}</div>`;
+ });
+}
+function searchByUHID(){
+ const p=patients.find(x=>x.uhid===uhidSearch.value);
+ if(!p) return alert('Patient not found');
+ loadPatient(p);
+}
+function loadPatient(p){
+ p_uhid.value=p.uhid;p_name.value=p.name;p_gender.value=p.gender;
+ p_age.value=p.age;p_phone.value=p.phone;p_doctor.value=p.doctor;p_address.value=p.address;
+p_relation.value=p.relation;
+currentPatient=p;
+ enableCharges();
+}
+
+/* Charges */
+function enableCharges(){
+ chargeCategory.disabled=chargeSelect.disabled=qty.disabled=rate.disabled=false;
+ addBtn.disabled=false;
+}
+chargeCategory.onchange=()=>{
+ if(!chargeCategory.value){
+  chargeSelect.innerHTML='<option>Select Category First</option>';
+  chargeSelect.disabled=true;
+  return;
+ }
+ chargeSelect.innerHTML='<option value="">Select Charge</option>';
+ CHARGES.filter(c=>c.cat===chargeCategory.value)
+ .forEach(c=>chargeSelect.innerHTML+=`<option data-rate="${c.rate}">${c.name}</option>`);
+ chargeSelect.disabled=false;
+};
+chargeSelect.onchange=()=>{
+ if(!chargeSelect.value) return;
+ rate.value=chargeSelect.selectedOptions[0]?.dataset.rate||0;
+};
+
+function addCharge(){
+ if(!p_uhid.value) return alert('Load patient first');
+ billCharges.push({name:chargeSelect.value,qty:+qty.value,rate:+rate.value});
+ renderCharges();
+}
+function renderCharges(){
+ chargeTable.innerHTML='';
+ let total=0;
+ billCharges.forEach((c,i)=>{
+  const amt=c.qty*c.rate; total+=amt;
+  chargeTable.innerHTML+=`
+  <tr>
+    <td>${c.name}</td><td>${c.qty}</td><td>₹ ${c.rate}</td><td>₹ ${amt}</td>
+    <td><button onclick="removeCharge(${i})">Remove</button></td>
+  </tr>`;
+ });
+ updateTotal();
+}
+function removeCharge(i){billCharges.splice(i,1);renderCharges();}
+function updateTotal(){
+ const sub=billCharges.reduce((s,c)=>s+(c.qty*c.rate),0);
+ total.value=Math.max(0,sub-(+discount.value||0));
+}
+
+/* Bill type */
+function handleBillType(){
+ upiFields.classList.add('hidden');
+ ayushmanFields.classList.add('hidden');
+ echsFields.classList.add('hidden');
+ if(billType.value==='UPI') upiFields.classList.remove('hidden');
+ if(billType.value==='Ayushman') ayushmanFields.classList.remove('hidden');
+ if(billType.value==='ECHS') echsFields.classList.remove('hidden');
+}
+
+function saveBill(){alert('Bill saved (demo)');}
+function saveBill(){
+if(!p_uhid.value) return alert('Load patient first');
+if(billCharges.length===0) return alert('Add charges first');
+const billNo=(Math.max(...todayBills.map(b=>+b.billNo),0)+1).toString();
+todayBills.unshift({billNo,name:p_name.value,uhid:p_uhid.value,amount:+total.value});
+renderTodayBills();
+alert('Bill saved!');
+clearForm();
+}
+function deleteWholeBill(){
+if(!currentPatient) return alert('Load a bill first');
+if(confirm('Delete entire bill?')){
+  billCharges=[];renderCharges();updateTotal();
+}
+}
+function clearForm(){
+p_uhid.value=p_name.value=p_gender.value=p_age.value=p_phone.value=p_doctor.value=p_address.value=p_relation.value='';
+chargeCategory.value='';chargeSelect.value='';qty.value=1;rate.value='';
+billCharges=[];renderCharges();updateTotal();
+discount.value=0;
+billType.value='Cash';handleBillType();
+chargeCategory.disabled=chargeSelect.disabled=qty.disabled=rate.disabled=true;addBtn.disabled=true;
+currentPatient=null;
+}
+function renderTodayBills(){
+ const div=document.getElementById('todayBills');
+ todayBills.forEach(b=>{
+  div.innerHTML+=`<div class="result-item"><b>${b.billNo}</b> — ${b.name}<div class="small">₹ ${b.amount}</div></div>`;
+ });
+}
+</script>
+</body>
+</html>

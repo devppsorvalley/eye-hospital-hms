@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Seemant Eye Hospital — Registration</title>
+<style>
+  :root{
+    --brand:#0f6b63;
+    --muted:#6b6f73;
+    --bg:#f4f7f6;
+    --card:#ffffff;
+    --danger:#d9534f;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  body{margin:0;background:var(--bg);color:#222}
+  header{
+    background:var(--brand); color:#fff; padding:10px 16px; display:flex;align-items:center;
+  }
+  header h1{font-size:16px;margin:0}
+  .container{display:flex;gap:12px;padding:12px}
+  .panel{background:var(--card);box-shadow:0 1px 6px rgba(0,0,0,0.06);border-radius:6px;padding:12px}
+  .left{flex:1;min-width:720px}
+  .right{width:320px} /* reduced width to give more main space */
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+  .col-3{display:flex;gap:10px}
+  input[type="text"], input[type="number"], input[type="date"], select, textarea{
+    width:100%;padding:8px;border:1px solid #e1e7e6;border-radius:4px;font-size:14px;background:#fff;
+    box-sizing:border-box;
+  }
+  .small{width:84px}
+  .tiny{font-size:12px;color:var(--muted)}
+  .btn{background:var(--brand);color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer}
+  .btn.secondary{background:#f0f0f0;color:#333;border:1px solid #ddd}
+  .btn.danger{background:var(--danger)}
+  .muted{color:var(--muted)}
+  .photo-box{width:150px;height:150px;border:1px dashed #cfd8dc;border-radius:6px;display:flex;align-items:center;justify-content:center;background:#fafafa;overflow:hidden}
+  .field-required {color:var(--danger);margin-left:6px;font-weight:600}
+  .grid {display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;}
+  .grid-2 {display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+  .actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .results-popup{background:#fff;border:1px solid #e6eceb;box-shadow:0 6px 18px rgba(0,0,0,0.06);padding:8px;border-radius:6px;max-height:260px;overflow:auto;position:relative;z-index:40}
+  .result-item{padding:8px;border-bottom:1px solid #f2f5f4;cursor:pointer}
+  .result-item:hover{background:#f7faf9}
+  .result-item:last-child{border-bottom:none}
+  .small-note{font-size:12px;color:#666;margin-top:6px}
+  .panel-left-header { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .panel-left-header img { height:48px; border-radius:4px; background:#fff; padding:4px; }
+  .panel-left-title { flex:1; text-align:center; font-weight:700; font-size:18px; color:#0f6b63; }
+  @media(max-width:1100px){ .container{flex-direction:column} .right{width:100%} .left{min-width:unset} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 style="color:#fff"> </h1>
+</header>
+
+<div class="container">
+ <div class="panel left" id="mainPanel">
+    <!-- left panel header with image + centered title -->
+    <div class="panel-left-header">
+      <div class="panel-left-title">Patient Registration</div>
+      <div style="width:48px"></div>
+    </div>
+
+    <!-- top row: UHID + date + quick/reg button -->
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <label>UHID (Auto)</label>
+        <input id="uhid" type="text" disabled placeholder="Auto-generated UHID" />
+        <div class="tiny muted">UHID is auto-generated and can be configured by admin</div>
+      </div>
+      <div style="width:200px">
+        <label>Registration Date <span class="field-required">*</span></label>
+        <input id="reg_date" type="text" placeholder="dd/mm/yyyy" />
+      </div>
+      <div style="width:140px;display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <label style="visibility:hidden">_</label>
+        <button class="btn secondary" id="openQuickRegTop" title="Quick register small entry">Quick Reg</button>
+      </div>
+    </div>
+
+    <hr/>
+
+    <!-- Name block grouped -->
+    <div>
+      <label>Full Name <span class="field-required">*</span></label>
+      <div class="col-3">
+        <input id="first_name" placeholder="First name" />
+        <input id="middle_name" placeholder="Middle (optional)" />
+        <input id="last_name" placeholder="Last name" />
+      </div>
+    </div>
+
+    <!-- Relation and father's/husband's name -->
+    <div class="row" style="margin-top:8px">
+      <div style="flex:0 0 160px">
+        <label>Relation</label>
+        <select id="relation_type">
+          <option value="">-- select --</option>
+          <option>S/o</option><option>D/o</option><option>W/o</option><option>Other</option>
+        </select>
+      </div>
+      <div style="flex:1">
+        <label>Father's / Husband's Name</label>
+        <input id="relation_text" placeholder="Enter father's or husband's name" />
+      </div>
+    </div>
+
+    <!-- Address block -->
+    <div style="margin-top:10px">
+      <label>District / Tehsil / Block</label>
+      <div class="grid-2">
+        <input id="district" placeholder="District" />
+        <input id="tehsil" placeholder="Tehsil" />
+      </div>
+      <div style="margin-top:8px" class="grid-2">
+        <input id="block" placeholder="Block" />
+        <input id="village" placeholder="Village" />
+      </div>
+
+      <div style="margin-top:8px">
+        <label>Address (Street / Locality / Landmark)</label>
+        <textarea id="address" rows="2"></textarea>
+      </div>
+    </div>
+
+    <!-- Demographic row -->
+    <div class="grid" style="margin-top:10px;align-items:end">
+      <div>
+        <label>Gender <span class="field-required">*</span></label>
+        <select id="gender">
+          <option value="">-- select --</option>
+          <option>Male</option><option>Female</option><option>Other</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Date of Birth (or enter Age) <span class="tiny muted">DOB auto-calculates Age — pick a date</span></label>
+        <!-- date input to show browser datepicker; we'll store/display as dd/mm/yyyy in saved data -->
+         <input id="dob" type="date" max="" placeholder="dd/mm/yyyy" style="appearance:auto" />
+
+      </div>
+
+      <div>
+        <label>Age</label>
+        <input id="age" type="text" placeholder="e.g. 32 yrs 3 mos" />
+      </div>
+    </div>
+
+    <!-- Phone / Doctor / Time / Referred by -->
+    <div class="grid" style="margin-top:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:64px">
+          <label class="tiny">Code</label>
+          <input id="phone_code" class="small" type="text" value="+91" />
+        </div>
+        <div style="flex:1">
+          <label>Mobile Number (optional)</label>
+          <input id="phone" placeholder="Mobile number" />
+        </div>
+      </div>
+
+      <div>
+        <label>Doctor (optional)</label>
+        <select id="doctor"><option>-- not assigned --</option><option>Dr Rohan</option><option>Dr Sharma</option></select>
+      </div>
+
+      <div>
+        <label>Time</label>
+        <input id="time" type="time" />
+      </div>
+    </div>
+
+    <div style="margin-top:8px">
+      <label>Referred By</label>
+      <input id="referred_by" placeholder="Referred by (name / organisation)" />
+    </div>
+
+    <!-- Chief complaint multiline -->
+    <div style="margin-top:10px">
+      <label>Chief Eye Complaint (optional)</label>
+      <textarea id="chief_complaint" rows="3" placeholder="Describe the eye complaint..."></textarea>
+    </div>
+
+    <!-- Photo and vitals -->
+    <div class="row" style="margin-top:12px;align-items:flex-start">
+      <div style="flex:0 0 180px">
+        <label>Photo</label>
+        <div class="photo-box" id="photoBox"><div class="tiny muted">No photo</div></div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <input id="photoUpload" type="file" accept="image/*" />
+          <button class="btn secondary" id="webcamBtn">Webcam</button>
+          <button class="btn secondary" id="stopCamBtn">Stop</button>
+        </div>
+        <div class="small-note">Max 2MB. Images are resized/compressed client-side to avoid browser crashes.</div>
+      </div>
+
+      <div style="flex:1">
+        <label style="display:flex;align-items:center;gap:8px"><input id="vitals_cb" type="checkbox"> Add Vitals</label>
+        <div id="vitals_section" style="display:none;margin-top:8px">
+          <div class="grid" >
+            <div><label>Weight (kg)</label><input id="weight" type="number" step="0.1" /></div>
+            <div><label>SPO2 (%)</label><input id="spo2" type="number" /></div>
+            <div><label>Temperature (°C)</label><input id="temp" type="number" step="0.1" /></div>
+          </div>
+          <div class="grid" style="margin-top:8px">
+            <div><label>Pulse</label><input id="pulse" type="number" /></div>
+            <div><label>BP (mmHg)</label><input id="bp" placeholder="" /></div>
+            <div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- actions -->
+    <div class="actions" style="margin-top:18px">
+      <button class="btn" id="registerBtn">Register</button>
+      <button class="btn secondary" id="saveBtn" style="display:none">Save Changes</button>
+      <button class="btn secondary" id="addOpdBtn">Add to OPD</button>
+      <button class="btn danger" id="deactivateBtn">Deactivate</button>
+      <button class="btn secondary" id="clearBtn" style="background:#fff;border:1px solid #ccc;color:#333">Clear Form</button>
+    </div>
+
+    <div style="margin-top:12px" class="tiny muted">
+      <div><strong>Notes:</strong> red * = recommended fields. Data is stored locally in this browser for testing (localStorage).</div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel right">
+    <div>
+      <label>Search patient (UHID / Name / Phone)</label>
+      <div style="display:flex;gap:8px">
+        <input id="searchBox" placeholder="Search by UHID, name or phone" />
+        <button class="btn secondary" id="searchBtn">Search</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="tiny muted"><strong>Recent Registrations</strong></div>
+      <div id="recentList" style="margin-top:8px;max-height:320px;overflow:auto;border-top:1px solid #f4f7f6;padding-top:8px"></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="tiny muted"><strong>System Notes</strong></div>
+      <ul class="tiny muted">
+        <li>UHID is auto-generated.</li>
+        <li>Dates use DD/MM/YYYY format when stored/displayed.</li>
+        <li>Local test mode: data persists in this browser only.</li>
+      </ul>
+    </div>
+
+    <div style="margin-top:12px">
+      <button class="btn secondary" id="exportBtn">Export JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK REG DIALOG (simple modal) -->
+<div id="quickRegModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;z-index:60">
+  <div style="background:#fff;padding:16px;border-radius:8px;width:420px;box-shadow:0 8px 24px rgba(0,0,0,0.25)">
+    <h3 style="margin:0 0 8px 0">Quick Register</h3>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <input id="qr_name" placeholder="Full name (First Last)" />
+      <select id="qr_gender"><option value="">Gender</option><option>Male</option><option>Female</option><option>Other</option></select>
+      <input id="qr_age" placeholder="Age in years (optional)" />
+      <input id="qr_address" placeholder="Address (single line)" />
+      <input id="qr_phone" placeholder="Mobile number (optional)" />
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn secondary" id="qr_cancel">Cancel</button>
+        <button class="btn" id="qr_save">Quick Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* --------------- Utilities and DB ----------------- */
+const DB_KEY = 'hms_v2_patients_v2';
+const CFG_KEY = 'hms_v2_cfg_v2';
+const currentUser = {id:'reception1', name:'Reception'};
+
+function loadDB(){ try{ return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); } catch(e){ console.error(e); return []; } }
+function saveDB(a){ localStorage.setItem(DB_KEY, JSON.stringify(a)); }
+function loadCfg(){ const r=localStorage.getItem(CFG_KEY); if(r) return JSON.parse(r); const d={nextUHID:9700}; localStorage.setItem(CFG_KEY, JSON.stringify(d)); return d; }
+function saveCfg(c){ localStorage.setItem(CFG_KEY, JSON.stringify(c)); }
+function genUHID(){ const cfg = loadCfg(); const u = cfg.nextUHID++; saveCfg(cfg); return String(u); }
+
+/* Format helpers (dd/mm/yyyy) */
+function today_ddmmyyyy(){ const d=new Date(); return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear(); }
+function pad(n){ return n<10 ? '0'+n : String(n); }
+function isoToDDMM(iso){ if(!iso) return ''; const d = new Date(iso); if(Number.isNaN(d.getTime())) return ''; return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear(); }
+function ddmmToISO(ddmm){ const p = parse_ddmmyyyy(ddmm); if(!p) return null; return p.toISOString().slice(0,10); }
+function parse_ddmmyyyy(s){
+  if(!s) return null;
+  const parts = s.split('/');
+  if(parts.length !== 3) return null;
+  const dd = parseInt(parts[0],10), mm = parseInt(parts[1],10), yyyy = parseInt(parts[2],10);
+  if(Number.isNaN(dd) || Number.isNaN(mm) || Number.isNaN(yyyy)) return null;
+  if(mm < 1 || mm > 12) return null;
+  if(dd < 1 || dd > 31) return null;
+  return new Date(yyyy, mm-1, dd);
+}
+
+/* Age calculation -> "X yrs Y mos" from Date object or ISO string */
+function ageYearsMonthsFromDOB(dobDate){
+  if(!dobDate) return '';
+  const now = new Date();
+  let years = now.getFullYear() - dobDate.getFullYear();
+  let months = now.getMonth() - dobDate.getMonth();
+  let days = now.getDate() - dobDate.getDate();
+  if(days < 0){ months--; }
+  if(months < 0){ years--; months += 12; }
+  if(years < 0) { years = 0; months = 0; }
+  return `${years} yrs ${months} mos`;
+}
+
+/* ---------- DOM elements ---------- */
+const uhidInput = document.getElementById('uhid');
+const regDate = document.getElementById('reg_date');
+const firstName = document.getElementById('first_name');
+const middleName = document.getElementById('middle_name');
+const lastName = document.getElementById('last_name');
+const relationType = document.getElementById('relation_type');
+const relationText = document.getElementById('relation_text');
+const district = document.getElementById('district');
+const tehsil = document.getElementById('tehsil');
+const block = document.getElementById('block');
+const village = document.getElementById('village');
+const address = document.getElementById('address');
+const gender = document.getElementById('gender');
+const dob = document.getElementById('dob'); // now type=date
+const ageInput = document.getElementById('age');
+const phoneCode = document.getElementById('phone_code');
+const phone = document.getElementById('phone');
+const doctor = document.getElementById('doctor');
+const timeInput = document.getElementById('time');
+const chief = document.getElementById('chief_complaint');
+const referredBy = document.getElementById('referred_by');
+const photoBox = document.getElementById('photoBox');
+const photoUpload = document.getElementById('photoUpload');
+const vitalsCb = document.getElementById('vitals_cb');
+const vitalsSection = document.getElementById('vitals_section');
+const weight = document.getElementById('weight');
+const spo2 = document.getElementById('spo2');
+const temp = document.getElementById('temp');
+const pulse = document.getElementById('pulse');
+const bp = document.getElementById('bp');
+const registerBtn = document.getElementById('registerBtn');
+const saveBtn = document.getElementById('saveBtn');
+const addOpdBtn = document.getElementById('addOpdBtn');
+const deactivateBtn = document.getElementById('deactivateBtn');
+const clearBtn = document.getElementById('clearBtn');
+const searchBox = document.getElementById('searchBox');
+const searchBtn = document.getElementById('searchBtn');
+const recentList = document.getElementById('recentList');
+const exportBtn = document.getElementById('exportBtn');
+const openQuickRegTop = document.getElementById('openQuickRegTop');
+
+/* Quick reg modal elements */
+const quickRegModal = document.getElementById('quickRegModal');
+const qr_name = document.getElementById('qr_name');
+const qr_gender = document.getElementById('qr_gender');
+const qr_age = document.getElementById('qr_age');
+const qr_address = document.getElementById('qr_address');
+const qr_phone = document.getElementById('qr_phone');
+const qr_save = document.getElementById('qr_save');
+const qr_cancel = document.getElementById('qr_cancel');
+
+/* Camera */
+let camStream = null;
+document.getElementById('webcamBtn').addEventListener('click', startCam);
+document.getElementById('stopCamBtn').addEventListener('click', stopCam);
+photoUpload.addEventListener('change', handlePhotoUpload);
+
+/* Initialize defaults */
+(function init(){
+  regDate.value = today_ddmmyyyy();
+  district.value = 'Pithoragarh';
+  timeInput.value = new Date().toTimeString().slice(0,5);
+// 🔒 Lock DOB to past dates only
+  const todayISO = new Date().toISOString().split('T')[0];
+  dob.setAttribute('max', todayISO);
+
+  vitalsCb.checked = false;
+  vitalsSection.style.display = 'none';
+
+  bp.value = ''; // blank by default
+  vitalsCb.checked = false; vitalsSection.style.display = 'none';
+  // sample data if none
+  if(loadDB().length === 0){
+    const samples = [
+      {uhid:'9697', reg_date:'09/11/2025', first_name:'Gaurav', middle_name:'', last_name:'K', relation_type:'S/o', relation_text:'Govind Ji', district:'Pithoragarh', tehsil:'T1', block:'B1', village:'Ghodapur', address:'Near temple', gender:'Male', dob:'10/05/1988', age:'37 yrs 6 mos', phone:'+91-9876543210', doctor:'Dr Rohan', time:'10:12', photo:'', vitals:{}, chief:'Blurred vision', referred_by:'', active:true, created_at:new Date().toISOString(), modified_at:new Date().toISOString(), created_by:'system', modified_by:'system'},
+      {uhid:'9698', reg_date:'09/11/2025', first_name:'Niruta', middle_name:'', last_name:'Chand', relation_type:'W/o', relation_text:'Pawan C', district:'Pithoragarh', tehsil:'T1', block:'B1', village:'Gadhapur', address:'Market Road', gender:'Female', dob:'22/03/1970', age:'53 yrs 8 mos', phone:'+91-9812345678', doctor:'', time:'11:05', photo:'', vitals:{}, chief:'Check-up', referred_by:'', active:true, created_at:new Date().toISOString(), modified_at:new Date().toISOString(), created_by:'system', modified_by:'system'}
+    ];
+    saveDB(samples);
+  }
+  renderRecent();
+})();
+
+/* ---------- Image upload + compression ---------- */
+function handlePhotoUpload(ev){
+  const f = ev.target.files[0];
+  if(!f) return;
+  if(f.size > 5 * 1024 * 1024){ alert('File too large (>5MB). Please choose a smaller image or use webcam.'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const maxW = 1000;
+      const scale = Math.min(1, maxW / img.width);
+      const cw = Math.round(img.width * scale);
+      const ch = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = cw;
+      canvas.height = ch;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, cw, ch);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+      photoBox.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover">`;
+      photoBox.dataset.photo = dataUrl;
+    };
+    img.onerror = function(){ alert('Unable to read image file.'); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+/* webcam snapshot */
+function startCam(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert('Webcam not supported'); return; }
+  navigator.mediaDevices.getUserMedia({video:true})
+    .then(stream=>{
+      camStream = stream;
+      const video = document.createElement('video');
+      video.autoplay = true; video.playsInline = true;
+      video.srcObject = stream; video.style.width='100%'; video.style.height='100%';
+      photoBox.innerHTML=''; photoBox.appendChild(video);
+      video.addEventListener('click', ()=>{ // taking snapshot
+        const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight;
+        c.getContext('2d').drawImage(video,0,0);
+        const d = c.toDataURL('image/jpeg',0.85);
+        photoBox.innerHTML = `<img src="${d}" style="width:100%;height:100%;object-fit:cover">`;
+        photoBox.dataset.photo = d;
+        stopCam();
+      });
+    })
+    .catch(err=>{ console.error(err); alert('Camera permission denied or unavailable.'); });
+}
+function stopCam(){ if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; } }
+
+/* ---------- DOB (type=date) -> Age calculation ---------- */
+dob.addEventListener('change', ()=>{
+  if(!dob.value){
+    ageInput.disabled = false;
+    ageInput.value = '';
+    return;
+  }
+
+  const d = new Date(dob.value);
+  if(isNaN(d.getTime())){
+    alert('Invalid DOB');
+    dob.value = '';
+    ageInput.disabled = false;
+    return;
+  }
+
+  // Auto-calculate age
+  ageInput.value = ageYearsMonthsFromDOB(d);
+
+  // 🔒 Disable manual age entry
+  ageInput.disabled = true;
+});
+
+dob.addEventListener('input', ()=>{
+  if(!dob.value){
+    ageInput.disabled = false;
+    ageInput.value = '';
+  }
+});
+
+
+/* Vitals toggle */
+vitalsCb.addEventListener('change', ()=>{ vitalsSection.style.display = vitalsCb.checked ? 'block' : 'none'; });
+
+/* ---------- Search (show results only; DO NOT auto-load) ---------- */
+searchBtn.addEventListener('click', doSearch);
+searchBox.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
+
+function doSearch(){
+  const q = (searchBox.value||'').toLowerCase().trim();
+  const all = loadDB();
+  // clear any existing popup
+  document.querySelectorAll('.results-popup').forEach(n=>n.remove());
+  if(!q){ renderRecent(); return; }
+  const res = all.filter(p=>{
+    const fullname = [p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ').toLowerCase();
+    return (p.uhid && p.uhid.includes(q)) || fullname.includes(q) || (p.phone && p.phone.toLowerCase().includes(q));
+  });
+  if(res.length === 0){
+    alert('No results');
+    searchBox.value = '';
+    return;
+  }
+  // show popup of results (DO NOT auto-load first)
+  const popup = document.createElement('div'); popup.className = 'results-popup';
+  popup.innerHTML = res.slice(0,20).map(r=>`<div class="result-item" data-uhid="${r.uhid}"><b>${r.uhid}</b> — ${[r.first_name,r.middle_name,r.last_name].filter(Boolean).join(' ')} <div class="tiny muted">${r.phone||''} • ${r.district||''} • ${r.reg_date||''}</div></div>`).join('');
+  popup.querySelectorAll('.result-item').forEach(it=> it.addEventListener('click', ()=>{ loadToForm(it.dataset.uhid); popup.remove(); }));
+  document.querySelector('.panel.right').appendChild(popup);
+  // clear search box after search as requested
+  searchBox.value = '';
+}
+
+/* ---------- Load & render patient ---------- */
+function loadToForm(uhid){
+  const all = loadDB();
+  const p = all.find(x=>x.uhid==uhid);
+  if(!p) { alert('Not found'); return; }
+  uhidInput.value = p.uhid;
+  regDate.value = p.reg_date || regDate.value;
+  firstName.value = p.first_name || '';
+  middleName.value = p.middle_name || '';
+  lastName.value = p.last_name || '';
+  relationType.value = p.relation_type || '';
+  relationText.value = p.relation_text || '';
+  district.value = p.district || 'Pithoragarh';
+  tehsil.value = p.tehsil || '';
+  block.value = p.block || '';
+  village.value = p.village || '';
+  address.value = p.address || '';
+  gender.value = p.gender || '';
+  // p.dob stored in dd/mm/yyyy -- convert for date input
+  if(p.dob){
+    const parsed = parse_ddmmyyyy(p.dob);
+    if(parsed) {
+      const iso = parsed.toISOString().slice(0,10); // yyyy-mm-dd
+      dob.value = iso;
+      ageInput.value = ageYearsMonthsFromDOB(parsed);
+    } else {
+      dob.value = ''; ageInput.value = p.age || '';
+    }
+  } else { dob.value = ''; ageInput.value = p.age || ''; }
+  // phone handling: avoid storing '-' when no phone
+  if(p.phone && p.phone.startsWith('+')){
+    const m = p.phone.match(/^(\+\d{1,3})[-\s]?(.+)$/);
+    if(m){ phoneCode.value = m[1]; phone.value = m[2]; } else { phoneCode.value = '+91'; phone.value = p.phone.replace(/^\+/, ''); }
+  } else {
+    phoneCode.value = p.phone && p.phone.includes('-') ? p.phone.split('-')[0] : '+91';
+    phone.value = p.phone ? (p.phone.includes('-') ? p.phone.split('-')[1] : p.phone) : '';
+  }
+  doctor.value = p.doctor || '';
+  timeInput.value = p.time || timeInput.value;
+  chief.value = p.chief || '';
+  referredBy.value = p.referred_by || '';
+  if(p.photo){ photoBox.innerHTML = `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover">`; photoBox.dataset.photo = p.photo; } else { photoBox.innerHTML = '<div class="tiny muted">No photo</div>'; delete photoBox.dataset.photo; }
+  if(p.vitals && Object.keys(p.vitals).length){ vitalsCb.checked = true; vitalsSection.style.display='block'; weight.value=p.vitals.weight||''; spo2.value=p.vitals.spo2||''; temp.value=p.vitals.temp||''; pulse.value=p.vitals.pulse||''; bp.value=p.vitals.bp||''; } else { vitalsCb.checked=false; vitalsSection.style.display='none'; weight.value=spo2.value=temp.value=pulse.value=bp.value=''; }
+  registerBtn.style.display='none'; saveBtn.style.display='inline-block';
+}
+
+/* ---------- Register new ---------- */
+registerBtn.addEventListener('click', ()=>{
+  if(!firstName.value.trim() || !relationText.value.trim() || !gender.value || !(dob.value || ageInput.value)){
+    if(!confirm('Recommended fields missing: Name / Relation name / Gender / DOB or Age. Continue?')) return;
+  }
+  // If dob present (date input), convert to dd/mm/yyyy for storage
+  let dobStored = '';
+  if(dob.value){
+    // dob.value is yyyy-mm-dd
+    const parts = dob.value.split('-');
+    if(parts.length===3) dobStored = `${pad(Number(parts[2]))}/${pad(Number(parts[1]))}/${parts[0]}`;
+  }
+  const phoneStored = phone.value ? ((phoneCode.value||'+91') + '-' + phone.value) : '';
+  const patient = {
+    uhid: genUHID(),
+    reg_date: regDate.value || today_ddmmyyyy(),
+    first_name: firstName.value.trim(),
+    middle_name: middleName.value.trim(),
+    last_name: lastName.value.trim(),
+    relation_type: relationType.value,
+    relation_text: relationText.value.trim(),
+    district: district.value.trim() || 'Pithoragarh',
+    tehsil: tehsil.value.trim(),
+    block: block.value.trim(),
+    village: village.value.trim(),
+    address: address.value.trim(),
+    gender: gender.value,
+    dob: dobStored,
+    age: ageInput.value.trim() || '',
+    phone: phoneStored,
+    doctor: doctor.value || '',
+    time: timeInput.value || '',
+    referred_by: referredBy.value || '',
+    photo: photoBox.dataset.photo || '',
+    vitals: vitalsCb.checked ? {weight:weight.value, spo2:spo2.value, temp:temp.value, pulse:pulse.value, bp:bp.value} : {},
+    chief: chief.value || '',
+    active:true,
+    created_at: new Date().toISOString(),
+    modified_at: new Date().toISOString(),
+    created_by: currentUser.name,
+    modified_by: currentUser.name
+  };
+  const arr = loadDB(); arr.push(patient); saveDB(arr);
+  alert('Registered UHID: ' + patient.uhid);
+  clearFormAfterAction();
+  renderRecent();
+});
+
+/* ---------- Save edits ---------- */
+saveBtn.addEventListener('click', ()=>{
+  if(!uhidInput.value){ alert('Load a patient first'); return; }
+  const arr = loadDB(); const idx = arr.findIndex(x=>x.uhid==uhidInput.value);
+  if(idx === -1){ alert('Patient missing'); return; }
+  const p = arr[idx];
+  p.first_name = firstName.value.trim(); p.middle_name = middleName.value.trim(); p.last_name = lastName.value.trim();
+  p.relation_type = relationType.value; p.relation_text = relationText.value.trim();
+  p.district = district.value.trim() || 'Pithoragarh'; p.tehsil = tehsil.value.trim(); p.block = block.value.trim(); p.village = village.value.trim();
+  p.address = address.value.trim(); p.gender = gender.value;
+  // store dob in dd/mm/yyyy if available
+  if(dob.value){
+    const parts = dob.value.split('-');
+    if(parts.length===3) p.dob = `${pad(Number(parts[2]))}/${pad(Number(parts[1]))}/${parts[0]}`;
+  } else p.dob = '';
+  p.age = ageInput.value.trim() || '';
+  p.phone = phone.value ? ((phoneCode.value||'+91') + '-' + phone.value) : '';
+  p.doctor = doctor.value || ''; p.time = timeInput.value || '';
+  p.referred_by = referredBy.value || '';
+  p.photo = photoBox.dataset.photo || p.photo || '';
+  p.vitals = vitalsCb.checked ? {weight:weight.value, spo2:spo2.value, temp:temp.value, pulse:pulse.value, bp:bp.value} : {};
+  p.chief = chief.value || '';
+  p.modified_at = new Date().toISOString(); p.modified_by = currentUser.name;
+  saveDB(arr);
+  alert('Saved changes');
+  clearFormAfterAction();
+  renderRecent();
+});
+
+/* Add to OPD (simulate) */
+addOpdBtn.addEventListener('click', ()=>{
+  if(!uhidInput.value){ alert('Load or register patient first'); return; }
+  alert('Added to OPD (simulated) for UHID: ' + uhidInput.value);
+});
+
+/* Deactivate */
+deactivateBtn.addEventListener('click', ()=>{
+  if(!uhidInput.value){ alert('Load a patient first'); return; }
+  if(!confirm('Deactivate this patient?')) return;
+  const arr = loadDB(); const idx = arr.findIndex(x=>x.uhid==uhidInput.value); if(idx===-1) return;
+  arr[idx].active = false; arr[idx].modified_at = new Date().toISOString(); arr[idx].modified_by = currentUser.name; saveDB(arr);
+  alert('Deactivated');
+  clearFormAfterAction();
+  renderRecent();
+});
+
+/* Clear form */
+clearBtn.addEventListener('click', ()=>{ if(!confirm('Clear the form?')) return; clearForm(); });
+
+function clearForm(){
+  uhidInput.value=''; regDate.value = today_ddmmyyyy();
+  firstName.value=middleName.value=lastName.value=''; relationType.value=''; relationText.value='';
+  district.value='Pithoragarh'; tehsil.value=block.value=village.value=address.value=''; gender.value=''; dob.value=''; ageInput.value='';
+  phoneCode.value='+91'; phone.value=''; doctor.value=''; timeInput.value = new Date().toTimeString().slice(0,5);
+  chief.value=''; referredBy.value=''; photoBox.innerHTML = '<div class="tiny muted">No photo</div>'; delete photoBox.dataset.photo;
+  vitalsCb.checked=false; vitalsSection.style.display='none'; weight.value=spo2.value=temp.value=pulse.value=bp.value='';
+  registerBtn.style.display='inline-block'; saveBtn.style.display='none';
+}
+
+/* Clear after actions (save/register) - requested: form should be cleared after Save Changes */
+function clearFormAfterAction(){ setTimeout(()=>{ clearForm(); }, 200); }
+
+/* ---------- Render recent (clickable) ---------- */
+function renderRecent(){
+  const all = loadDB().slice(-30).reverse();
+  recentList.innerHTML = '';
+  all.forEach(p=>{
+    const div = document.createElement('div');
+    div.style.padding = '8px';
+    div.style.borderBottom = '1px solid #f4f7f4';
+    div.className = 'recent-item';
+    div.innerHTML = `<b>${p.uhid}</b> — ${[p.first_name,p.middle_name,p.last_name].filter(Boolean).join(' ')} <div class="tiny muted">${p.phone || ''} • ${p.district||''} • ${p.reg_date||''}</div>`;
+    div.style.cursor = 'pointer';
+    div.addEventListener('click', ()=>{ loadToForm(p.uhid); });
+    recentList.appendChild(div);
+  });
+}
+
+/* Export */
+exportBtn.addEventListener('click', ()=>{ const data = loadDB(); const url = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); const a=document.createElement('a'); a.href=url; a.download='patients_export.json'; a.click(); });
+
+/* Quick register modal */
+openQuickRegTop.addEventListener('click', ()=>{ qr_name.value=''; qr_gender.value=''; qr_age.value=''; qr_address.value=''; qr_phone.value=''; quickRegModal.style.display='flex'; });
+qr_cancel.addEventListener('click', ()=>{ quickRegModal.style.display='none'; });
+qr_save.addEventListener('click', ()=>{
+  const name = (qr_name.value||'').trim();
+  if(!name){ alert('Enter name'); return; }
+  const parts = name.split(' ');
+  const p = {
+    uhid: genUHID(),
+    reg_date: today_ddmmyyyy(),
+    first_name: parts[0], middle_name:'', last_name:parts.slice(1).join(' '),
+    relation_type:'', relation_text:'', district:'Pithoragarh', tehsil:'', block:'', village:'', address: qr_address.value||'',
+    gender: qr_gender.value || '', dob:'', age: qr_age.value ? (qr_age.value + ' yrs 0 mos') : '',
+    phone: qr_phone.value ? ('+91-' + qr_phone.value) : '',
+    doctor:'', time:new Date().toTimeString().slice(0,5), photo:'', vitals:{}, chief:'', referred_by:'', active:true,
+    created_at:new Date().toISOString(), modified_at:new Date().toISOString(), created_by:currentUser.name, modified_by:currentUser.name
+  };
+  const arr = loadDB(); arr.push(p); saveDB(arr);
+  quickRegModal.style.display='none';
+  alert('Quick registered UHID: ' + p.uhid);
+  renderRecent();
+});
+
+/* close quickReg when clicking outside */
+quickRegModal.addEventListener('click', (e)=>{ if(e.target === quickRegModal) quickRegModal.style.display='none'; });
+
+/* ---------- set default UI state ---------- */
+clearForm();
+renderRecent();
+</script>
+</body>
+</html>
